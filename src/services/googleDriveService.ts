@@ -9,52 +9,11 @@ export interface DriveFileInfo {
   modifiedTime: string;
 }
 
-export const DEMO_DRIVE_FILES: DriveFileInfo[] = [
-  {
-    id: 'drv_01',
-    name: 'image_001.png',
-    mimeType: 'image/png',
-    size: '1.2 MB',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&auto=format&fit=crop&q=80',
-    modifiedTime: '2026-09-20 05:10'
-  },
-  {
-    id: 'drv_02',
-    name: 'image_002.png',
-    mimeType: 'image/png',
-    size: '1.4 MB',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=300&auto=format&fit=crop&q=80',
-    modifiedTime: '2026-09-20 04:30'
-  },
-  {
-    id: 'drv_03',
-    name: 'image_003.png',
-    mimeType: 'image/png',
-    size: '2.1 MB',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=300&auto=format&fit=crop&q=80',
-    modifiedTime: '2026-09-20 03:15'
-  },
-  {
-    id: 'drv_04',
-    name: 'budget_pin_001.png',
-    mimeType: 'image/png',
-    size: '1.9 MB',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&auto=format&fit=crop&q=80',
-    modifiedTime: '2026-09-19 19:40'
-  },
-  {
-    id: 'drv_05',
-    name: 'magic_video_001.mp4',
-    mimeType: 'video/mp4',
-    size: '18.4 MB',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=300&auto=format&fit=crop&q=80',
-    modifiedTime: '2026-09-19 16:20'
-  }
-];
+export const DEMO_DRIVE_FILES: DriveFileInfo[] = [];
 
 export class GoogleDriveService {
-  private static isConnected: boolean = true;
-  private static currentFolder: string = 'SavvyMomBudget';
+  private static isConnected: boolean = false;
+  private static currentFolder: string = '';
 
   static async connectDrive(): Promise<{ success: boolean; message: string }> {
     // Simulated OAuth handshake (in production, uses Google Identity Service / OAuth2)

@@ -70,7 +70,27 @@ export const FacebookView: React.FC = () => {
       </div>
 
       {/* Pages Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {facebookPages.length === 0 ? (
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-10 text-center max-w-xl mx-auto space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto">
+            <Share2 className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-zinc-100">No Facebook Pages Connected</h2>
+            <p className="text-xs text-zinc-400 mt-1">
+              Connect your Facebook business pages and configure anti-spam posting delay intervals to start multi-page distribution.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-600/20 inline-flex items-center gap-2 transition"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Connect Your First Facebook Page</span>
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {facebookPages.map((page) => {
           return (
             <div
@@ -158,6 +178,7 @@ export const FacebookView: React.FC = () => {
           );
         })}
       </div>
+      )}
 
       {/* Multi-Page Posting Engine Info */}
       <div className="p-5 bg-zinc-900/60 border border-zinc-800/80 rounded-2xl flex items-start gap-3">

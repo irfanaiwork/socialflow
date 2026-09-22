@@ -24,7 +24,11 @@ import {
   Check,
   X,
   Link2,
-  Sliders
+  Sliders,
+  GitBranch,
+  DownloadCloud,
+  FileSpreadsheet,
+  Sparkles
 } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
@@ -48,7 +52,11 @@ export const SettingsView: React.FC = () => {
     togglePinterestConnection,
     youtubeChannels,
     connectYouTubeChannel,
-    toggleYouTubeChannelConnection
+    toggleYouTubeChannelConnection,
+    appVersion,
+    checkForUpdates,
+    setIsUpdateModalOpen,
+    setIsCsvModalOpen
   } = useApp();
 
   const [formData, setFormData] = useState(settings);
@@ -158,7 +166,7 @@ export const SettingsView: React.FC = () => {
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-zinc-100 tracking-tight">System & Account Integrations</h1>
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              Zero-Budget Architecture
+              Cloud & Client Hybrid Architecture
             </span>
           </div>
           <p className="text-xs text-zinc-400 mt-1">
@@ -175,6 +183,104 @@ export const SettingsView: React.FC = () => {
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset Demo Data</span>
           </button>
+        </div>
+      </div>
+
+      {/* 0. SOFTWARE VERSION & GITHUB CI/CD AUTO-UPDATE CENTER */}
+      <div className="bg-gradient-to-br from-[#071328] via-[#091834] to-[#040c1c] border border-sky-500/30 rounded-2xl p-6 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#142848]">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+              <GitBranch className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-sm font-bold text-white tracking-tight">Software Version & GitHub Sync</h2>
+                <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/40">
+                  Current: {appVersion.currentVersion}
+                </span>
+                {appVersion.hasUpdate ? (
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    Update Available ({appVersion.latestVersion})
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-zinc-800 text-zinc-300 border border-zinc-700">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    Up to date
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-300 mt-1">
+                Hosted with browser-encrypted local storage and cloud sync. All queues, credentials, and settings are preserved across updates.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => checkForUpdates(false)}
+              disabled={appVersion.isChecking}
+              className="px-3.5 py-2 bg-[#0c1a35] hover:bg-[#132750] text-sky-300 border border-[#1e3966] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${appVersion.isChecking ? 'animate-spin text-sky-400' : ''}`} />
+              <span>{appVersion.isChecking ? 'Checking...' : 'Check for Updates'}</span>
+            </button>
+
+            {appVersion.hasUpdate && (
+              <button
+                type="button"
+                onClick={() => setIsUpdateModalOpen(true)}
+                className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 transition cursor-pointer"
+              >
+                <DownloadCloud className="w-4 h-4" />
+                <span>Review & Apply {appVersion.latestVersion}</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* GitHub deployment explanation box */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+          <div className="bg-[#050e1f]/80 border border-[#132545] p-3.5 rounded-xl">
+            <div className="text-[11px] font-semibold text-slate-200 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+              How Updates Work Online
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+              When you push code updates via <code className="text-sky-300 bg-sky-950/60 px-1 py-0.5 rounded">git push</code>, platforms like Vercel or Cloudflare deploy your newest version within seconds.
+            </p>
+          </div>
+
+          <div className="bg-[#050e1f]/80 border border-[#132545] p-3.5 rounded-xl">
+            <div className="text-[11px] font-semibold text-slate-200 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Data Integrity & Backup Protection
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+              All scheduled pins, connected accounts, and configuration keys remain securely stored in your browser local storage. No post data is ever deleted during upgrades.
+            </p>
+          </div>
+
+          <div className="bg-[#050e1f]/80 border border-[#132545] p-3.5 rounded-xl flex flex-col justify-between">
+            <div>
+              <div className="text-[11px] font-semibold text-slate-200 flex items-center gap-1.5">
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                Bulk CSV Scheduler
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                Import and schedule 100+ pins and posts directly from any spreadsheet into the publishing queue.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsCsvModalOpen(true)}
+              className="mt-2 text-xs font-semibold text-emerald-300 hover:text-emerald-200 flex items-center gap-1 underline underline-offset-2"
+            >
+              Open Bulk CSV Uploader →
+            </button>
+          </div>
         </div>
       </div>
 
@@ -209,8 +315,8 @@ export const SettingsView: React.FC = () => {
                   }`}>
                     {googleDrive.isConnected ? 'Connected (Active)' : 'Disconnected'}
                   </span>
-                  <span className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800">
-                    Zero Cost
+                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/40">
+                    Active Storage
                   </span>
                 </div>
                 <p className="text-[11px] text-zinc-400 mt-0.5">
@@ -306,7 +412,7 @@ export const SettingsView: React.FC = () => {
             </div>
 
             <p className="text-[11px] text-slate-300 leading-relaxed">
-              اگر Google Drive کا ڈائریکٹ فولڈر سنک کسی وجہ سے میڈیا تک رسائی نہ کر سکے، تو آپ Google Cloud Console سے مفت میں Google Drive API key حاصل کر کے یہاں درج کر سکتے ہیں۔ سافٹ ویئر کے ذاتی استعمال کے لیے سپابیس یا کسی اور ادا شدہ سروس کا اکاؤنٹ بالکل درکار نہیں ہے۔
+              If direct Google Drive folder syncing cannot reach media due to strict permissions, you can create a free Google Drive API key from Google Cloud Console and paste it here. No paid subscription, Supabase, or external server is required for full functionality.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -361,7 +467,7 @@ export const SettingsView: React.FC = () => {
               </button>
 
               <span className="text-[10px] text-slate-400">
-                🔒 Keys stay safe in your local browser storage — 100% zero server leak.
+                🔒 API keys are stored securely in local browser storage without server transmission.
               </span>
             </div>
 
@@ -553,9 +659,9 @@ export const SettingsView: React.FC = () => {
           <div className="flex items-center gap-2 pb-3 border-b border-zinc-800">
             <Shield className="w-5 h-5 text-amber-400" />
             <div>
-              <h2 className="text-sm font-semibold text-zinc-100">Runtime Execution Mode & Zero-Cost Policy</h2>
+              <h2 className="text-sm font-semibold text-zinc-100">Runtime Execution Environment</h2>
               <p className="text-xs text-zinc-400">
-                Operates with 100% full functionality at zero investment. No paid API tokens or subscription required.
+                Toggle between Sandbox Simulation for safe testing and Live API Dispatch for production publishing.
               </p>
             </div>
           </div>
@@ -567,11 +673,11 @@ export const SettingsView: React.FC = () => {
                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                   formData.demoMode ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'
                 }`}>
-                  {formData.demoMode ? 'Active (Zero Cost / Zero Credentials)' : 'Live API Credentials Active'}
+                  {formData.demoMode ? 'Active (Sandbox Mode)' : 'Active (Live Production API)'}
                 </span>
               </div>
               <p className="text-xs text-zinc-400 mt-1">
-                When enabled, all Pinterest Pin creations, Facebook post dispatches, YouTube uploads, and Google Drive polls simulate 100% authentic behavior for testing without spending any budget.
+                When enabled, all Pinterest Pin creations, Facebook post dispatches, YouTube uploads, and Google Drive polls simulate 100% authentic behavior for end-to-end workflow verification.
               </p>
             </div>
 
@@ -814,7 +920,7 @@ export const SettingsView: React.FC = () => {
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:border-amber-500"
                 />
                 <span className="text-[11px] text-zinc-500 mt-1 block">
-                  Zero Investment: In demo mode, this creates an active synchronized folder immediately with ready assets.
+                  Fast Setup: Initializes synchronized folder mapping immediately with local media assets.
                 </span>
               </div>
 

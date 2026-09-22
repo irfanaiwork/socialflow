@@ -80,47 +80,68 @@ export const PinterestView: React.FC = () => {
       </div>
 
       {/* Accounts List & Switcher */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {pinterestAccounts.map((acc) => {
-          const isSelected = acc.id === activeAccount?.id;
-          return (
-            <div
-              key={acc.id}
-              onClick={() => setSelectedAccountId(acc.id)}
-              className={`p-4 rounded-2xl border cursor-pointer transition flex flex-col justify-between ${
-                isSelected
-                  ? 'bg-rose-950/20 border-rose-500/50 shadow-md shadow-rose-950/30'
-                  : 'bg-zinc-900/70 border-zinc-800 hover:border-zinc-700'
-              }`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={acc.avatarUrl}
-                    alt={acc.name}
-                    className="w-11 h-11 rounded-full object-cover border border-zinc-700"
-                  />
-                  <div>
-                    <h3 className="text-sm font-semibold text-zinc-100">{acc.name}</h3>
-                    <span className="text-xs text-zinc-400">{acc.username}</span>
+      {pinterestAccounts.length === 0 ? (
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-10 text-center max-w-xl mx-auto space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto">
+            <Bookmark className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-zinc-100">No Pinterest Accounts Connected</h2>
+            <p className="text-xs text-zinc-400 mt-1">
+              Connect your real Pinterest account and boards to start scheduling and auto-publishing high-converting Pins.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowConnectModal(true)}
+            className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-rose-600/20 inline-flex items-center gap-2 transition"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Connect Your First Pinterest Account</span>
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {pinterestAccounts.map((acc) => {
+            const isSelected = acc.id === activeAccount?.id;
+            return (
+              <div
+                key={acc.id}
+                onClick={() => setSelectedAccountId(acc.id)}
+                className={`p-4 rounded-2xl border cursor-pointer transition flex flex-col justify-between ${
+                  isSelected
+                    ? 'bg-rose-950/20 border-rose-500/50 shadow-md shadow-rose-950/30'
+                    : 'bg-zinc-900/70 border-zinc-800 hover:border-zinc-700'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={acc.avatarUrl}
+                      alt={acc.name}
+                      className="w-11 h-11 rounded-full object-cover border border-zinc-700"
+                    />
+                    <div>
+                      <h3 className="text-sm font-semibold text-zinc-100">{acc.name}</h3>
+                      <span className="text-xs text-zinc-400">{acc.username}</span>
+                    </div>
                   </div>
+
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    acc.isConnected ? 'bg-emerald-500/15 text-emerald-400' : 'bg-zinc-800 text-zinc-500'
+                  }`}>
+                    {acc.isConnected ? 'Connected' : 'Paused'}
+                  </span>
                 </div>
 
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  acc.isConnected ? 'bg-emerald-500/15 text-emerald-400' : 'bg-zinc-800 text-zinc-500'
-                }`}>
-                  {acc.isConnected ? 'Connected' : 'Paused'}
-                </span>
+                <div className="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
+                  <span>{acc.boards.length} Boards</span>
+                  <span className="font-semibold text-zinc-200">{acc.postsPublished} Pins Published</span>
+                </div>
               </div>
-
-              <div className="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
-                <span>{acc.boards.length} Boards</span>
-                <span className="font-semibold text-zinc-200">{acc.postsPublished} Pins Published</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Active Account Detail Panel */}
       {activeAccount && (
@@ -198,7 +219,7 @@ export const PinterestView: React.FC = () => {
             <div className="text-xs space-y-1">
               <span className="font-semibold text-zinc-200 block">Strict Destination URL Preservation</span>
               <p className="text-zinc-400 leading-relaxed">
-                SocialFlow enforces zero URL mutation. Every Pin published to{' '}
+                SocialFlow enforces strict destination URL preservation. Every Pin published to{' '}
                 <span className="text-zinc-200 font-semibold">{activeAccount.name}</span> will link strictly to the custom destination URL entered for that post (e.g. blog post landing page, Shopify product page, or printable download), prioritizing per-post URLs over the global website URL.
               </p>
             </div>

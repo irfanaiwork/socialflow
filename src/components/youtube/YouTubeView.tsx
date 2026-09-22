@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { YouTubeChannel } from '../../types';
+import { GoogleAuthModal } from '../common/GoogleAuthModal';
 import {
   Youtube,
   Clock,
@@ -32,19 +33,6 @@ export const YouTubeView: React.FC = () => {
 
   const [editingChannel, setEditingChannel] = useState<YouTubeChannel | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newChannelName, setNewChannelName] = useState('');
-  const [newChannelHandle, setNewChannelHandle] = useState('');
-  const [newChannelGap, setNewChannelGap] = useState(90);
-
-  const handleAddChannel = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newChannelName) return;
-    await connectYouTubeChannel(newChannelName, newChannelHandle || `@${newChannelName.toLowerCase().replace(/\s+/g, '')}`);
-    setNewChannelName('');
-    setNewChannelHandle('');
-    setNewChannelGap(90);
-    setShowAddModal(false);
-  };
 
   const handleSaveChannelEdit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,8 +48,8 @@ export const YouTubeView: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-zinc-100 tracking-tight">YouTube Channels & Shorts Automation</h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">
-              Zero-Cost API Mode
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              OAuth 2.0 Ready
             </span>
           </div>
           <p className="text-xs text-zinc-400 mt-1">
@@ -80,22 +68,42 @@ export const YouTubeView: React.FC = () => {
         </div>
       </div>
 
-      {/* Info Banner: Zero Investment */}
-      <div className="p-4 bg-gradient-to-r from-red-950/40 via-zinc-900 to-zinc-900 border border-red-900/40 rounded-2xl flex items-start gap-3">
+      {/* Info Banner */}
+      <div className="p-4 bg-gradient-to-r from-red-950/30 via-zinc-900 to-zinc-900 border border-red-900/40 rounded-2xl flex items-start gap-3">
         <ShieldCheck className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-xs font-semibold text-zinc-100">100% Free YouTube Shorts & Video Automation</h3>
-            <span className="text-[10px] font-mono text-zinc-400">Zero Budget Required</span>
+            <h3 className="text-xs font-semibold text-zinc-100">YouTube Shorts & Channel Automation Engine</h3>
+            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded">Google Cloud Verified</span>
           </div>
           <p className="text-xs text-zinc-300">
-            Connect unlimited YouTube channels. Each channel can have dedicated automation rules linked to separate Google Drive folders and unique destination URLs.
+            Link authorized YouTube channels via Google Account verification. Each channel supports custom upload intervals, automatic hashtag extraction, and dedicated Google Drive folder watchers.
           </p>
         </div>
       </div>
 
       {/* Channels Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {youtubeChannels.length === 0 ? (
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-10 text-center max-w-xl mx-auto space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center mx-auto">
+            <Youtube className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-zinc-100">No YouTube Channels Connected</h2>
+            <p className="text-xs text-zinc-400 mt-1">
+              Connect your YouTube channels to auto-publish Shorts and full-length videos with custom tags and landing page destination links.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-red-600/20 inline-flex items-center gap-2 transition"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Connect Your First YouTube Channel</span>
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {youtubeChannels.map((channel) => {
           return (
             <div
@@ -198,88 +206,21 @@ export const YouTubeView: React.FC = () => {
           );
         })}
       </div>
-
-      {/* Modal: Connect Channel */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-              <div className="flex items-center gap-2">
-                <Youtube className="w-5 h-5 text-red-500" />
-                <h3 className="text-sm font-semibold text-zinc-100">Connect YouTube Channel</h3>
-              </div>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-zinc-400 hover:text-zinc-200"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddChannel} className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-zinc-300 block mb-1">Channel Display Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g., Daily Shorts Vault"
-                  value={newChannelName}
-                  onChange={(e) => setNewChannelName(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:border-red-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-zinc-300 block mb-1">Channel Handle</label>
-                <input
-                  type="text"
-                  placeholder="e.g., @dailyshortsvault"
-                  value={newChannelHandle}
-                  onChange={(e) => setNewChannelHandle(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:border-red-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-zinc-300 block mb-1">
-                  Minimum Upload Gap (Minutes)
-                </label>
-                <input
-                  type="number"
-                  min={10}
-                  max={720}
-                  value={newChannelGap}
-                  onChange={(e) => setNewChannelGap(Number(e.target.value))}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:border-red-500"
-                />
-                <span className="text-[11px] text-zinc-500 mt-1 block">
-                  Recommended: 60-120 minutes between shorts uploads to maximize algorithmic distribution.
-                </span>
-              </div>
-
-              <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-xl text-[11px] text-zinc-400">
-                🚀 <strong className="text-zinc-200">Zero Investment:</strong> Works immediately in Demo Mode. Connect real Google Cloud OAuth credentials anytime in Settings.
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl text-xs font-medium hover:bg-zinc-750 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-red-600/20 transition"
-                >
-                  Confirm & Connect
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
       )}
+
+      {/* Modal: Connect Channel via Google OAuth */}
+      <GoogleAuthModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        serviceType="youtube"
+        userEmail="creator@gmail.com"
+        onSuccess={async (data) => {
+          if (data.channel) {
+            await connectYouTubeChannel(data.channel.name, data.channel.handle, data.channel.gapMinutes);
+            setShowAddModal(false);
+          }
+        }}
+      />
 
       {/* Modal: Edit Upload Gap */}
       {editingChannel && (

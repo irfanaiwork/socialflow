@@ -16,7 +16,8 @@ import {
   Cloud,
   CheckCircle2,
   Clock,
-  Play
+  Play,
+  FileSpreadsheet
 } from 'lucide-react';
 import { MediaModal } from '../common/MediaModal';
 
@@ -32,14 +33,19 @@ export const ContentLibraryView: React.FC = () => {
     connectGoogleDrive,
     disconnectGoogleDrive,
     selectGoogleDriveFolder,
-    getEffectiveDestinationUrl
+    getEffectiveDestinationUrl,
+    setIsCsvModalOpen
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'image' | 'video' | 'ready' | 'scheduled' | 'published' | 'failed'>('all');
   const [selectedMediaForModal, setSelectedMediaForModal] = useState<MediaItem | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [customFolderName, setCustomFolderName] = useState('');
   const [showFolderModal, setShowFolderModal] = useState(false);
+  const [folderHistory, setFolderHistory] = useState<string[]>(() => {
+    return googleDrive.name ? [googleDrive.name] : [];
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Filter & search logic
@@ -82,6 +88,15 @@ export const ContentLibraryView: React.FC = () => {
 
         {/* Google Drive Status Bar & Quick Schedule Button */}
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => setIsCsvModalOpen(true)}
+            className="px-3.5 py-2 bg-[#09152b] hover:bg-[#112347] border border-[#1a335a] hover:border-emerald-500/50 text-emerald-300 rounded-xl text-xs font-semibold shadow-sm flex items-center gap-1.5 transition cursor-pointer"
+            title="Upload CSV spreadsheet to schedule batch pins"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Bulk CSV Scheduler</span>
+          </button>
+
           <button
             onClick={() => navigateTo('scheduled')}
             className="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-sky-500/20 flex items-center gap-1.5 transition cursor-pointer"
@@ -161,7 +176,7 @@ export const ContentLibraryView: React.FC = () => {
           ref={fileInputRef}
           type="file"
           multiple
-          accept="image/png,image/jpeg,image/webp,video/mp4,video/quicktime"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg,.csv,text/csv,video/mp4,video/quicktime"
           className="hidden"
           onChange={(e) => handleFiles(e.target.files)}
         />
@@ -171,10 +186,10 @@ export const ContentLibraryView: React.FC = () => {
           </div>
           <div className="space-y-1">
             <p className="text-sm font-semibold text-zinc-200">
-              Drag & drop media files here, or <span className="text-blue-400 underline underline-offset-2">browse computer</span>
+              Drag & drop media files or CSV here, or <span className="text-blue-400 underline underline-offset-2">browse computer</span>
             </p>
-            <p className="text-xs text-zinc-500">
-              Supports PNG, JPG, JPEG, WEBP images and MP4, MOV videos up to 500MB
+            <p className="text-xs text-zinc-400">
+              Supports <span className="text-slate-200 font-medium">PNG, JPG, WEBP, SVG Vector graphics</span>, <span className="text-emerald-400 font-medium">CSV bulk spreadsheets</span>, & MP4/MOV videos
             </p>
           </div>
         </div>
@@ -378,36 +393,70 @@ export const ContentLibraryView: React.FC = () => {
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-5 space-y-4">
             <h3 className="font-semibold text-zinc-100 text-sm">Select Google Drive Folder</h3>
             <p className="text-xs text-zinc-400">
-              SocialFlow will periodically poll this folder for incoming media uploads and automatically trigger AI visual generation.
+              Enter or select the folder name in your Google Drive to monitor and sync media from.
             </p>
 
-            <div className="space-y-2">
-              {[
-                { name: 'SavvyMomBudget', files: 25, active: googleDrive.name === 'SavvyMomBudget' },
-                { name: 'MagicStreetMedia_Daily', files: 18, active: googleDrive.name === 'MagicStreetMedia_Daily' },
-                { name: 'FrugalFamilyPrintables', files: 12, active: googleDrive.name === 'FrugalFamilyPrintables' }
-              ].map((f) => (
-                <button
-                  key={f.name}
-                  onClick={() => {
-                    selectGoogleDriveFolder(f.name);
-                    setShowFolderModal(false);
-                  }}
-                  className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition ${
-                    f.active ? 'bg-blue-600/15 border-blue-500/40 text-blue-300' : 'bg-zinc-800/60 border-zinc-700 text-zinc-300 hover:bg-zinc-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Cloud className="w-4 h-4 text-zinc-400" />
-                    <div>
-                      <div className="text-xs font-medium text-zinc-200">{f.name}</div>
-                      <span className="text-[11px] text-zinc-400">{f.files} files indexed</span>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const trimmed = customFolderName.trim();
+                if (trimmed) {
+                  selectGoogleDriveFolder(trimmed);
+                  if (!folderHistory.includes(trimmed)) {
+                    setFolderHistory((prev) => [trimmed, ...prev]);
+                  }
+                  setCustomFolderName('');
+                  setShowFolderModal(false);
+                }
+              }}
+              className="space-y-3"
+            >
+              <div>
+                <label className="text-[11px] text-zinc-400 block mb-1">Target Folder Name / Path</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. MyPins, SocialUploads, 2025-Media"
+                    value={customFolderName}
+                    onChange={(e) => setCustomFolderName(e.target.value)}
+                    className="flex-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!customFolderName.trim()}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition"
+                  >
+                    Set
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            {folderHistory.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-zinc-800">
+                <span className="text-[11px] text-zinc-400 block">Recent Folders</span>
+                {folderHistory.map((folderName) => (
+                  <button
+                    key={folderName}
+                    onClick={() => {
+                      selectGoogleDriveFolder(folderName);
+                      setShowFolderModal(false);
+                    }}
+                    className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition ${
+                      googleDrive.name === folderName
+                        ? 'bg-blue-600/15 border-blue-500/40 text-blue-300'
+                        : 'bg-zinc-800/60 border-zinc-700 text-zinc-300 hover:bg-zinc-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Cloud className="w-4 h-4 text-zinc-400" />
+                      <span className="text-xs font-medium">{folderName}</span>
                     </div>
-                  </div>
-                  {f.active && <CheckCircle2 className="w-4 h-4 text-blue-400" />}
-                </button>
-              ))}
-            </div>
+                    {googleDrive.name === folderName && <CheckCircle2 className="w-4 h-4 text-blue-400" />}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="pt-2 flex justify-end">
               <button

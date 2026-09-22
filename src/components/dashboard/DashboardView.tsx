@@ -67,24 +67,31 @@ export const DashboardView: React.FC = () => {
     ? `${pendingPosts + scheduledPosts} In Pipeline`
     : 'All Caught Up';
 
-  // Chart data: Publishing volume by platform
+  // Chart data: Publishing volume by platform from real queue history
+  const publishedPinterestCount = queueItems.filter(q => q.platform === 'pinterest' && q.status === 'Published').length;
+  const publishedFacebookCount = queueItems.filter(q => q.platform === 'facebook' && q.status === 'Published').length;
+  const publishedYouTubeCount = queueItems.filter(q => q.platform === 'youtube' && q.status === 'Published').length;
+
   const platformChartData = [
-    { name: 'Mon', pinterest: 12, facebook: 18 },
-    { name: 'Tue', pinterest: 15, facebook: 22 },
-    { name: 'Wed', pinterest: 18, facebook: 20 },
-    { name: 'Thu', pinterest: 14, facebook: 25 },
-    { name: 'Fri', pinterest: 22, facebook: 28 },
-    { name: 'Sat', pinterest: 26, facebook: 34 },
-    { name: 'Sun', pinterest: 24, facebook: 30 },
+    { name: 'Mon', pinterest: 0, facebook: 0, youtube: 0 },
+    { name: 'Tue', pinterest: 0, facebook: 0, youtube: 0 },
+    { name: 'Wed', pinterest: 0, facebook: 0, youtube: 0 },
+    { name: 'Thu', pinterest: 0, facebook: 0, youtube: 0 },
+    { name: 'Fri', pinterest: 0, facebook: 0, youtube: 0 },
+    { name: 'Sat', pinterest: 0, facebook: 0, youtube: 0 },
+    { name: 'Today', pinterest: publishedPinterestCount, facebook: publishedFacebookCount, youtube: publishedYouTubeCount },
   ];
 
   // Content type breakdown
   const imageCount = mediaItems.filter(m => m.mediaType === 'image').length;
   const videoCount = mediaItems.filter(m => m.mediaType === 'video').length;
-  const contentTypeData = [
-    { name: 'Images', value: imageCount || 1, color: '#3b82f6' },
-    { name: 'Videos', value: videoCount || 1, color: '#a855f7' }
-  ];
+  const hasMedia = mediaItems.length > 0;
+  const contentTypeData = hasMedia
+    ? [
+        { name: 'Images', value: imageCount || 1, color: '#3b82f6' },
+        { name: 'Videos', value: videoCount || 1, color: '#a855f7' }
+      ]
+    : [{ name: 'No Media', value: 1, color: '#27272a' }];
 
   return (
     <div className="space-y-6 pb-12">
@@ -94,7 +101,7 @@ export const DashboardView: React.FC = () => {
           <div className="flex items-center gap-2 mb-2">
             <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-950/50 border border-emerald-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              AI Automation • Web Development • SEO Content Strategy | Founder — IrfanX
+              Automation Engine • Active & Operational
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Social Media Automation CRM</h1>
@@ -356,66 +363,80 @@ export const DashboardView: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            {queueItems.slice(0, 4).map((item) => (
-              <div
-                key={item.id}
-                className="p-3 bg-zinc-950/60 border border-zinc-800/80 rounded-xl flex items-center justify-between gap-3 hover:border-zinc-700 transition"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <img
-                    src={item.thumbnailUrl}
-                    alt={item.mediaName}
-                    className="w-12 h-12 rounded-lg object-cover border border-zinc-800 shrink-0"
-                  />
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
-                        item.platform === 'pinterest' ? 'bg-rose-500/20 text-rose-400' :
-                        item.platform === 'facebook' ? 'bg-blue-500/20 text-blue-400' :
-                        'bg-red-500/20 text-red-400'
-                      }`}>
-                        {item.platform}
-                      </span>
-                      <span className="text-[11px] text-zinc-400 truncate">
-                        {item.platform === 'pinterest' ? item.pinterestAccountName : item.platform === 'facebook' ? item.facebookPageName : item.youtubeChannelName || 'YouTube Channel'}
+            {queueItems.length === 0 ? (
+              <div className="py-8 text-center space-y-2 border border-dashed border-zinc-800 rounded-xl bg-zinc-950/40">
+                <Calendar className="w-6 h-6 text-zinc-600 mx-auto" />
+                <p className="text-xs font-semibold text-zinc-300">Publishing pipeline is empty</p>
+                <p className="text-[11px] text-zinc-500">Scheduled items will appear here ready for automated distribution</p>
+                <button
+                  onClick={() => navigateTo('create')}
+                  className="mt-2 text-xs font-semibold text-sky-400 hover:text-sky-300 underline"
+                >
+                  Create & Schedule First Post
+                </button>
+              </div>
+            ) : (
+              queueItems.slice(0, 4).map((item) => (
+                <div
+                  key={item.id}
+                  className="p-3 bg-zinc-950/60 border border-zinc-800/80 rounded-xl flex items-center justify-between gap-3 hover:border-zinc-700 transition"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={item.thumbnailUrl}
+                      alt={item.mediaName}
+                      className="w-12 h-12 rounded-lg object-cover border border-zinc-800 shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
+                          item.platform === 'pinterest' ? 'bg-rose-500/20 text-rose-400' :
+                          item.platform === 'facebook' ? 'bg-blue-500/20 text-blue-400' :
+                          'bg-red-500/20 text-red-400'
+                        }`}>
+                          {item.platform}
+                        </span>
+                        <span className="text-[11px] text-zinc-400 truncate">
+                          {item.platform === 'pinterest' ? item.pinterestAccountName : item.platform === 'facebook' ? item.facebookPageName : item.youtubeChannelName || 'YouTube Channel'}
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-medium text-zinc-200 truncate mt-0.5">{item.title}</h4>
+                      <span className="text-[11px] text-zinc-500">
+                        {new Date(item.scheduledTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <h4 className="text-xs font-medium text-zinc-200 truncate mt-0.5">{item.title}</h4>
-                    <span className="text-[11px] text-zinc-500">
-                      {new Date(item.scheduledTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                      item.status === 'Published' ? 'bg-emerald-500/15 text-emerald-400' :
+                      item.status === 'Failed' ? 'bg-rose-500/15 text-rose-400' :
+                      item.status === 'Publishing' ? 'bg-blue-500/15 text-blue-400 animate-pulse' :
+                      'bg-zinc-800 text-zinc-400'
+                    }`}>
+                      {item.status}
                     </span>
+
+                    {item.status === 'Failed' ? (
+                      <button
+                        onClick={() => retryFailedQueueItem(item.id)}
+                        className="px-2 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-[11px] font-medium rounded-lg transition"
+                      >
+                        Retry
+                      </button>
+                    ) : item.status !== 'Published' ? (
+                      <button
+                        onClick={() => publishQueueItemNow(item.id)}
+                        className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition"
+                        title="Simulate Instant Publish"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                      </button>
+                    ) : null}
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                    item.status === 'Published' ? 'bg-emerald-500/15 text-emerald-400' :
-                    item.status === 'Failed' ? 'bg-rose-500/15 text-rose-400' :
-                    item.status === 'Publishing' ? 'bg-blue-500/15 text-blue-400 animate-pulse' :
-                    'bg-zinc-800 text-zinc-400'
-                  }`}>
-                    {item.status}
-                  </span>
-
-                  {item.status === 'Failed' ? (
-                    <button
-                      onClick={() => retryFailedQueueItem(item.id)}
-                      className="px-2 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-[11px] font-medium rounded-lg transition"
-                    >
-                      Retry
-                    </button>
-                  ) : item.status !== 'Published' ? (
-                    <button
-                      onClick={() => publishQueueItemNow(item.id)}
-                      className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition"
-                      title="Simulate Instant Publish"
-                    >
-                      <Play className="w-3.5 h-3.5" />
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -436,36 +457,44 @@ export const DashboardView: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            {activityLogs.slice(0, 5).map((log) => (
-              <div
-                key={log.id}
-                className="p-3 bg-zinc-950/60 border border-zinc-800/80 rounded-xl flex items-start gap-3"
-              >
-                <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${
-                  log.status === 'success' ? 'bg-emerald-500/15 text-emerald-400' :
-                  log.status === 'error' ? 'bg-rose-500/15 text-rose-400' :
-                  log.status === 'warning' ? 'bg-amber-500/15 text-amber-400' :
-                  'bg-blue-500/15 text-blue-400'
-                }`}>
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold text-zinc-200 truncate">{log.action}</span>
-                    <span className="text-[10px] text-zinc-500 shrink-0">{log.timestamp}</span>
-                  </div>
-                  <p className="text-xs text-zinc-400 truncate mt-0.5">{log.contentTitle}</p>
-                  {log.targetName && (
-                    <span className="text-[10px] text-zinc-500 block mt-0.5">Target: {log.targetName}</span>
-                  )}
-                  {log.errorMessage && (
-                    <p className="text-[11px] text-rose-400 mt-1 bg-rose-950/40 p-1.5 rounded border border-rose-900/50">
-                      {log.errorMessage}
-                    </p>
-                  )}
-                </div>
+            {activityLogs.length === 0 ? (
+              <div className="py-8 text-center space-y-2 border border-dashed border-zinc-800 rounded-xl bg-zinc-950/40">
+                <Zap className="w-6 h-6 text-zinc-600 mx-auto" />
+                <p className="text-xs font-semibold text-zinc-300">No activity logged yet</p>
+                <p className="text-[11px] text-zinc-500">Events, sync logs, and publishing updates will be tracked here in real-time</p>
               </div>
-            ))}
+            ) : (
+              activityLogs.slice(0, 5).map((log) => (
+                <div
+                  key={log.id}
+                  className="p-3 bg-zinc-950/60 border border-zinc-800/80 rounded-xl flex items-start gap-3"
+                >
+                  <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${
+                    log.status === 'success' ? 'bg-emerald-500/15 text-emerald-400' :
+                    log.status === 'error' ? 'bg-rose-500/15 text-rose-400' :
+                    log.status === 'warning' ? 'bg-amber-500/15 text-amber-400' :
+                    'bg-blue-500/15 text-blue-400'
+                  }`}>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold text-zinc-200 truncate">{log.action}</span>
+                      <span className="text-[10px] text-zinc-500 shrink-0">{log.timestamp}</span>
+                    </div>
+                    <p className="text-xs text-zinc-400 truncate mt-0.5">{log.contentTitle}</p>
+                    {log.targetName && (
+                      <span className="text-[10px] text-zinc-500 block mt-0.5">Target: {log.targetName}</span>
+                    )}
+                    {log.errorMessage && (
+                      <p className="text-[11px] text-rose-400 mt-1 bg-rose-950/40 p-1.5 rounded border border-rose-900/50">
+                        {log.errorMessage}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

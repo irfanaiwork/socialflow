@@ -15,7 +15,8 @@ import {
   Bookmark,
   Youtube,
   Radio,
-  X
+  X,
+  Search
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -24,7 +25,15 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { currentView, navigateTo, queueItems, mediaItems } = useApp();
+  const {
+    currentView,
+    navigateTo,
+    queueItems,
+    mediaItems,
+    setIsQuickSearchOpen,
+    settings,
+    updateSettings
+  } = useApp();
 
   const pendingQueueCount = queueItems.filter(q => q.status === 'Pending' || q.status === 'Scheduled').length;
   const readyMediaCount = mediaItems.filter(m => m.status === 'Ready').length;
@@ -58,24 +67,41 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Main Sidebar */}
       <aside
-        className={`fixed lg:sticky top-0 lg:top-16 left-0 z-40 h-full lg:h-[calc(100vh-4rem)] w-64 bg-[#081226] border-r border-[#142848] p-4 flex flex-col justify-between transition-transform duration-200 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed lg:sticky top-0 lg:top-16 left-0 z-40 h-full lg:h-[calc(100vh-4rem)] w-72 lg:w-64 bg-[#081226] border-r border-[#142848] p-4 flex flex-col justify-between overflow-y-auto transition-transform duration-200 ease-in-out ${
+          isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Mobile close button & brand */}
           <div className="flex items-center justify-between lg:hidden pb-3 border-b border-[#142848]">
-            <img
-              src="https://irfangulzar.com/wp-content/uploads/2026/03/irfan-gulzar-logo1-e1773074593503.webp"
-              alt="Irfan Gulzar"
-              className="h-6 w-auto object-contain"
-            />
+            <div className="flex items-center gap-2">
+              <img
+                src="https://irfangulzar.com/wp-content/uploads/2026/03/irfan-gulzar-logo1-e1773074593503.webp"
+                alt="Irfan Gulzar"
+                className="h-6 w-auto object-contain"
+              />
+              <span className="text-xs font-bold text-sky-400">SocialFlow</span>
+            </div>
             <button
               onClick={onClose}
-              className="p-1 text-slate-400 hover:text-white rounded"
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg bg-[#0e1d38]"
               aria-label="Close menu"
             >
               <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Mobile Quick Action Button (Search) */}
+          <div className="lg:hidden pb-2 border-b border-[#142848]">
+            <button
+              onClick={() => {
+                onClose();
+                setIsQuickSearchOpen(true);
+              }}
+              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-[#0d1c3a] hover:bg-[#122448] text-slate-200 text-xs font-semibold rounded-xl border border-[#1a335a] transition"
+            >
+              <Search className="w-3.5 h-3.5 text-sky-400" />
+              <span>Quick Search (Ctrl+K)</span>
             </button>
           </div>
 
@@ -91,7 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     navigateTo(item.id);
                     onClose();
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all group ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all group cursor-pointer ${
                     isActive
                       ? 'bg-gradient-to-r from-sky-500/20 to-blue-600/20 text-sky-400 border border-sky-500/40 shadow-sm'
                       : 'text-slate-400 hover:text-slate-100 hover:bg-[#0d1c3a] border border-transparent'
@@ -113,7 +139,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer info: Centralized Automation Engine Status & Creator Tag */}
-        <div className="pt-4 border-t border-[#142848] space-y-3">
+        <div className="pt-4 mt-6 border-t border-[#142848] space-y-3">
           <div className="bg-[#0b1730]/90 border border-[#1a335a] rounded-xl p-3">
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
@@ -127,14 +153,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </p>
           </div>
 
-          <a
-            href="https://irfangulzar.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-center text-[11px] text-slate-400 hover:text-sky-300 transition py-1"
-          >
-            Founder: <strong className="text-white">IrfanX</strong> • <span className="text-sky-400 underline underline-offset-2">irfangulzar.com</span>
-          </a>
+          <div className="text-center text-[10px] text-slate-500 py-1 font-mono">
+            SocialFlow Enterprise v2.4
+          </div>
         </div>
       </aside>
     </>

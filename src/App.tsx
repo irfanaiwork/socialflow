@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
+import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { ToastContainer } from './components/common/ToastContainer';
+import { UpdateNotificationModal } from './components/common/UpdateNotificationModal';
+import { CsvBulkUploadModal } from './components/library/CsvBulkUploadModal';
+import { QuickSearchModal } from './components/common/QuickSearchModal';
 
 // Feature Views
 import { DashboardView } from './components/dashboard/DashboardView';
@@ -57,9 +61,30 @@ const MainContent: React.FC = () => {
 
 const AppLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const {
+    isUpdateModalOpen,
+    setIsUpdateModalOpen,
+    isCsvModalOpen,
+    setIsCsvModalOpen,
+    isQuickSearchOpen,
+    setIsQuickSearchOpen,
+    theme
+  } = useApp();
+
+  // Global Ctrl+K / Cmd+K listener
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsQuickSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [setIsQuickSearchOpen]);
 
   return (
-    <div className="min-h-screen bg-[#050b14] text-slate-100 font-sans antialiased selection:bg-sky-500 selection:text-white flex flex-col">
+    <div className="min-h-screen font-sans antialiased selection:bg-sky-500 selection:text-white flex flex-col bg-[#050b14] text-slate-100">
       {/* Top Navbar */}
       <Navbar onToggleSidebar={() => setIsSidebarOpen(prev => !prev)} />
 
@@ -70,13 +95,30 @@ const AppLayout: React.FC = () => {
           onClose={() => setIsSidebarOpen(false)}
         />
 
-        <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 max-w-7xl mx-auto w-full">
+        <main className="flex-1 overflow-y-auto px-3 sm:px-8 py-4 sm:py-6 max-w-7xl mx-auto w-full pb-24 lg:pb-8">
           <MainContent />
         </main>
       </div>
 
+      {/* Mobile Bottom Navigation Bar (App-like thumb reachable) */}
+      <MobileBottomNav />
+
+      {/* Global Modals */}
+      <QuickSearchModal
+        isOpen={isQuickSearchOpen}
+        onClose={() => setIsQuickSearchOpen(false)}
+      />
+      <UpdateNotificationModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+      />
+      <CsvBulkUploadModal
+        isOpen={isCsvModalOpen}
+        onClose={() => setIsCsvModalOpen(false)}
+      />
+
       {/* Global Footer (Requested: Created by ❤️ Irfan Gulzar linking to irfangulzar.com) */}
-      <footer className="bg-[#070e1c] border-t border-[#142848] py-4 px-6 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3 z-20">
+      <footer className="hidden lg:flex bg-[#070e1c] border-t border-[#142848] py-4 px-6 text-xs text-slate-400 flex-col sm:flex-row items-center justify-between gap-3 z-20">
         <div className="flex items-center gap-2.5">
           <a href="https://irfangulzar.com" target="_blank" rel="noopener noreferrer">
             <img

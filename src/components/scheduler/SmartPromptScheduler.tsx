@@ -55,9 +55,9 @@ export const SmartPromptScheduler: React.FC<SmartPromptSchedulerProps> = ({
     navigateTo
   } = useApp();
 
-  // Active user instruction text (defaults to the exact user prompt scenario)
+  // Active user instruction text (defaults to the exact batch scheduling scenario)
   const [instruction, setInstruction] = useState(
-    'aj in sab pins ko sechudaul kro jitni bhi pins hn din mein 24 pins sechuadual honi chaye aik ghanty k gap ke bad'
+    'Schedule all available pins today: 24 pins with 1 hour gap between each pin'
   );
 
   const activePinterest = pinterestAccounts[0];
@@ -77,24 +77,24 @@ export const SmartPromptScheduler: React.FC<SmartPromptSchedulerProps> = ({
   // Quick preset instructions
   const samplePrompts = [
     {
-      title: 'Aj 24 Pins (1 Hr Gap)',
-      text: 'aj in sab pins ko sechudaul kro jitni bhi pins hn din mein 24 pins sechuadual honi chaye aik ghanty k gap ke bad',
-      badge: 'User Request'
+      title: 'Today 24 Pins (1 Hr Gap)',
+      text: 'Schedule 24 pins for today with 1 hour gap between posts',
+      badge: 'Full Day'
     },
     {
       title: 'Today 12 Pins (2 Hr Gap)',
-      text: 'aj hi sab ready pins ko schedule kro din mein 12 pins har 2 ghanty k gap k bad',
+      text: 'Schedule 12 pins today with 2 hours interval between posts',
       badge: 'Relaxed Pace'
     },
     {
-      title: 'Kal Subah 9 AM (30m Interval)',
-      text: 'kal subah 09:00 AM se 15 pins schedule kro 30 minutes ke gap ke sath',
-      badge: 'Tomorrow Morning'
+      title: 'Tomorrow Morning 9 AM (30m Interval)',
+      text: 'Schedule 15 pins tomorrow starting at 09:00 AM with 30 minutes gap',
+      badge: 'Morning Slot'
     },
     {
       title: '24/7 Hourly Blitz (24 Pins)',
       text: 'Schedule 24 pins starting now with 60 minutes interval across today and tonight',
-      badge: 'Full Day'
+      badge: 'Hourly Blitz'
     }
   ];
 
@@ -257,6 +257,16 @@ export const SmartPromptScheduler: React.FC<SmartPromptSchedulerProps> = ({
 
   // Execute Batch Scheduling to Queue
   const handleExecuteBatchSchedule = async () => {
+    if (pinterestAccounts.length === 0) {
+      showToast('error', 'Pinterest Account Required', 'Please connect a Pinterest account before scheduling pins.');
+      return;
+    }
+
+    if (mediaItems.length === 0) {
+      showToast('warning', 'Media Required', 'Please upload at least one image or video in Content Library before batch scheduling.');
+      return;
+    }
+
     setIsExecuting(true);
 
     try {
@@ -329,7 +339,7 @@ export const SmartPromptScheduler: React.FC<SmartPromptSchedulerProps> = ({
               </span>
             </div>
             <p className="text-xs text-slate-300 mt-0.5">
-              Type custom prompt instructions like: <em>&ldquo;Aj in sab pins ko schedule kro din mein 24 pins 1 ghanty k gap k sath&rdquo;</em>
+              Type natural language instructions like: <em>&ldquo;Schedule 24 pins today with 1 hour gap between posts&rdquo;</em>
             </p>
           </div>
         </div>
@@ -348,7 +358,7 @@ export const SmartPromptScheduler: React.FC<SmartPromptSchedulerProps> = ({
         <div className="flex items-center justify-between">
           <label className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
             <Zap className="w-3.5 h-3.5 text-amber-400" />
-            <span>Enter Your Scheduling Instruction (Urdu, Roman Urdu, or English):</span>
+            <span>Enter Your Scheduling Instruction:</span>
           </label>
           <span className="text-[11px] text-slate-400 font-mono">Real-time NLP Parser active</span>
         </div>
@@ -359,7 +369,7 @@ export const SmartPromptScheduler: React.FC<SmartPromptSchedulerProps> = ({
             onChange={(e) => setInstruction(e.target.value)}
             rows={2}
             className="w-full bg-[#050b14] border border-[#1d3864] focus:border-sky-400 focus:ring-1 focus:ring-sky-400/30 rounded-xl px-4 py-3 text-xs sm:text-sm text-slate-100 placeholder-slate-500 font-medium transition resize-none shadow-inner"
-            placeholder="e.g. aj in sab pins ko sechudaul kro jitni bhi pins hn din mein 24 pins sechuadual honi chaye aik ghanty k gap ke bad"
+            placeholder="e.g. Schedule all available pins today: 24 pins with 1 hour gap between each pin"
           />
         </div>
 
@@ -471,35 +481,48 @@ export const SmartPromptScheduler: React.FC<SmartPromptSchedulerProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           <div>
             <label className="text-[11px] text-slate-400 block mb-1">Target Pinterest Account & Board</label>
-            <div className="flex gap-2">
-              <select
-                value={selectedAccountId}
-                onChange={(e) => {
-                  setSelectedAccountId(e.target.value);
-                  const acc = pinterestAccounts.find(a => a.id === e.target.value);
-                  if (acc?.boards[0]) setSelectedBoardId(acc.boards[0].id);
-                }}
-                className="w-1/2 bg-[#050b14] border border-[#1a335a] rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-sky-400"
-              >
-                {pinterestAccounts.map(acc => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.name} (@{acc.username})
-                  </option>
-                ))}
-              </select>
+            {pinterestAccounts.length === 0 ? (
+              <div className="flex items-center justify-between p-2 bg-[#050b14] border border-[#1a335a] rounded-xl text-xs">
+                <span className="text-slate-400">No account connected</span>
+                <button
+                  type="button"
+                  onClick={() => navigateTo('pinterest')}
+                  className="text-rose-400 hover:text-rose-300 font-semibold underline text-xs"
+                >
+                  Connect Pinterest
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <select
+                  value={selectedAccountId}
+                  onChange={(e) => {
+                    setSelectedAccountId(e.target.value);
+                    const acc = pinterestAccounts.find(a => a.id === e.target.value);
+                    if (acc?.boards[0]) setSelectedBoardId(acc.boards[0].id);
+                  }}
+                  className="w-1/2 bg-[#050b14] border border-[#1a335a] rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-sky-400"
+                >
+                  {pinterestAccounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name} (@{acc.username})
+                    </option>
+                  ))}
+                </select>
 
-              <select
-                value={selectedBoardId}
-                onChange={(e) => setSelectedBoardId(e.target.value)}
-                className="w-1/2 bg-[#050b14] border border-[#1a335a] rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-sky-400"
-              >
-                {(pinterestAccounts.find(a => a.id === selectedAccountId) || pinterestAccounts[0])?.boards.map(b => (
-                  <option key={b.id} value={b.id}>
-                    📌 {b.name} ({b.pinCount} pins)
-                  </option>
-                ))}
-              </select>
-            </div>
+                <select
+                  value={selectedBoardId}
+                  onChange={(e) => setSelectedBoardId(e.target.value)}
+                  className="w-1/2 bg-[#050b14] border border-[#1a335a] rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-sky-400"
+                >
+                  {(pinterestAccounts.find(a => a.id === selectedAccountId) || pinterestAccounts[0])?.boards.map(b => (
+                    <option key={b.id} value={b.id}>
+                      📌 {b.name} ({b.pinCount} pins)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div>

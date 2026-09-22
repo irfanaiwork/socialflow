@@ -157,12 +157,32 @@ export const CreatePostView: React.FC = () => {
     e.preventDefault();
 
     if (!currentMedia) {
-      showToast('error', 'Missing Media', 'Please select a media file to post.');
+      showToast('error', 'Missing Media', 'Please select or upload a media file to post.');
       return;
     }
 
     if (!validateUrl(perPostDestinationUrl)) {
       showToast('error', 'Invalid URL', 'Destination URL format is invalid.');
+      return;
+    }
+
+    const needsPinterest = platformSelection === 'both' || platformSelection === 'all' || platformSelection === 'pinterest';
+    if (needsPinterest && !activePinterestAccount) {
+      showToast('error', 'Pinterest Account Required', 'Please connect a Pinterest account before scheduling to Pinterest.');
+      return;
+    }
+
+    const needsFacebook = platformSelection === 'both' || platformSelection === 'all' || platformSelection === 'facebook';
+    const validFacebookPageIds = selectedFacebookPageIds.filter(id => id && facebookPages.some(p => p.id === id));
+    if (needsFacebook && validFacebookPageIds.length === 0) {
+      showToast('error', 'Facebook Page Required', 'Please connect and select at least one Facebook page.');
+      return;
+    }
+
+    const needsYouTube = platformSelection === 'all' || platformSelection === 'youtube';
+    const ytChan = youtubeChannels.find(c => c.id === selectedYouTubeChannelId) || youtubeChannels[0];
+    if (needsYouTube && !ytChan) {
+      showToast('error', 'YouTube Channel Required', 'Please connect a YouTube channel before scheduling to YouTube.');
       return;
     }
 
@@ -172,16 +192,16 @@ export const CreatePostView: React.FC = () => {
     const itemsToAdd: Omit<QueueItem, 'id' | 'createdAt'>[] = [];
 
     // 1. Pinterest Item (if selected)
-    if (platformSelection === 'both' || platformSelection === 'all' || platformSelection === 'pinterest') {
-      const activeBoard = activePinterestAccount?.boards.find(b => b.id === selectedBoardId);
+    if (needsPinterest && activePinterestAccount) {
+      const activeBoard = activePinterestAccount.boards.find(b => b.id === selectedBoardId) || activePinterestAccount.boards[0];
       itemsToAdd.push({
         mediaId: currentMedia.id,
         mediaName: currentMedia.fileName,
         mediaType: currentMedia.mediaType,
         thumbnailUrl: currentMedia.thumbnailUrl,
         platform: 'pinterest',
-        pinterestAccountId: activePinterestAccount?.id,
-        pinterestAccountName: activePinterestAccount?.name,
+        pinterestAccountId: activePinterestAccount.id,
+        pinterestAccountName: activePinterestAccount.name,
         boardId: activeBoard?.id,
         boardName: activeBoard?.name,
         title,
@@ -196,8 +216,8 @@ export const CreatePostView: React.FC = () => {
     }
 
     // 2. Facebook Items with Per-Page Posting Gaps (if selected)
-    if (platformSelection === 'both' || platformSelection === 'all' || platformSelection === 'facebook') {
-      selectedFacebookPageIds.forEach((pageId) => {
+    if (needsFacebook) {
+      validFacebookPageIds.forEach((pageId) => {
         const page = facebookPages.find(p => p.id === pageId);
         const slot = calculatedSlots.find(s => s.pageId === pageId);
         const slotTime = scheduleType === 'now'
@@ -225,16 +245,15 @@ export const CreatePostView: React.FC = () => {
     }
 
     // 3. YouTube Shorts / Video Item (if selected)
-    if (platformSelection === 'all' || platformSelection === 'youtube') {
-      const ytChan = youtubeChannels.find(c => c.id === selectedYouTubeChannelId) || youtubeChannels[0];
+    if (needsYouTube && ytChan) {
       itemsToAdd.push({
         mediaId: currentMedia.id,
         mediaName: currentMedia.fileName,
         mediaType: currentMedia.mediaType,
         thumbnailUrl: currentMedia.thumbnailUrl,
         platform: 'youtube',
-        youtubeChannelId: ytChan?.id,
-        youtubeChannelName: ytChan?.name,
+        youtubeChannelId: ytChan.id,
+        youtubeChannelName: ytChan.name,
         title: title || 'Quick Short #Shorts',
         description: `${facebookCaption || pinterestDescription}\n\n🔗 Learn more: ${effectiveUrl}`,
         caption: facebookCaption,
@@ -305,30 +324,41 @@ export const CreatePostView: React.FC = () => {
             </div>
 
             {/* Media Carousel / Dropdown */}
-            <div className="grid grid-cols-4 gap-2.5">
-              {mediaItems.slice(0, 4).map((m) => (
-                <button
-                  type="button"
-                  key={m.id}
-                  onClick={() => setSelectedMediaId(m.id)}
-                  className={`relative aspect-video rounded-xl overflow-hidden border-2 transition text-left group ${
-                    selectedMediaId === m.id
-                      ? 'border-blue-500 ring-2 ring-blue-500/30'
-                      : 'border-zinc-800 hover:border-zinc-700 opacity-70 hover:opacity-100'
-                  }`}
-                >
-                  <img src={m.thumbnailUrl} alt={m.fileName} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-1.5 flex flex-col justify-end">
-                    <span className="text-[10px] text-white font-medium truncate">{m.fileName}</span>
-                  </div>
-                  {m.mediaType === 'video' && (
-                    <span className="absolute top-1 left-1 p-0.5 rounded bg-purple-900/80 text-purple-300">
-                      <Film className="w-2.5 h-2.5" />
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
+            {mediaItems.length === 0 ? (
+              <div
+                onClick={() => navigateTo('library')}
+                className="p-6 border-2 border-dashed border-zinc-800 hover:border-zinc-700 bg-zinc-950/60 rounded-xl text-center cursor-pointer transition group"
+              >
+                <ImageIcon className="w-6 h-6 text-zinc-600 group-hover:text-zinc-400 mx-auto mb-1.5 transition" />
+                <p className="text-xs font-semibold text-zinc-300">No media uploaded yet</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">Click here to open Content Library and add your own images or videos</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-2.5">
+                {mediaItems.slice(0, 4).map((m) => (
+                  <button
+                    type="button"
+                    key={m.id}
+                    onClick={() => setSelectedMediaId(m.id)}
+                    className={`relative aspect-video rounded-xl overflow-hidden border-2 transition text-left group ${
+                      selectedMediaId === m.id
+                        ? 'border-blue-500 ring-2 ring-blue-500/30'
+                        : 'border-zinc-800 hover:border-zinc-700 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={m.thumbnailUrl} alt={m.fileName} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-1.5 flex flex-col justify-end">
+                      <span className="text-[10px] text-white font-medium truncate">{m.fileName}</span>
+                    </div>
+                    {m.mediaType === 'video' && (
+                      <span className="absolute top-1 left-1 p-0.5 rounded bg-purple-900/80 text-purple-300">
+                        <Film className="w-2.5 h-2.5" />
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {currentMedia && (
               <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-xl flex items-center justify-between text-xs">
@@ -396,39 +426,52 @@ export const CreatePostView: React.FC = () => {
                   <span>Pinterest Target Account & Board</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Account Selector */}
-                  <div>
-                    <label className="text-[11px] text-zinc-400 block mb-1">Select Pinterest Account</label>
-                    <select
-                      value={selectedPinterestAccountId}
-                      onChange={(e) => setSelectedPinterestAccountId(e.target.value)}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
+                {pinterestAccounts.length === 0 ? (
+                  <div className="p-3 bg-zinc-950/80 border border-zinc-800 rounded-xl flex items-center justify-between text-xs">
+                    <span className="text-zinc-400">No Pinterest accounts connected yet.</span>
+                    <button
+                      type="button"
+                      onClick={() => navigateTo('pinterest')}
+                      className="text-rose-400 hover:text-rose-300 font-semibold underline"
                     >
-                      {pinterestAccounts.map((acc) => (
-                        <option key={acc.id} value={acc.id}>
-                          {acc.name} ({acc.username})
-                        </option>
-                      ))}
-                    </select>
+                      Connect Account
+                    </button>
                   </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Account Selector */}
+                    <div>
+                      <label className="text-[11px] text-zinc-400 block mb-1">Select Pinterest Account</label>
+                      <select
+                        value={selectedPinterestAccountId}
+                        onChange={(e) => setSelectedPinterestAccountId(e.target.value)}
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
+                      >
+                        {pinterestAccounts.map((acc) => (
+                          <option key={acc.id} value={acc.id}>
+                            {acc.name} ({acc.username})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                  {/* Board Selector */}
-                  <div>
-                    <label className="text-[11px] text-zinc-400 block mb-1">Target Board</label>
-                    <select
-                      value={selectedBoardId}
-                      onChange={(e) => setSelectedBoardId(e.target.value)}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
-                    >
-                      {activePinterestAccount?.boards.map((b) => (
-                        <option key={b.id} value={b.id}>
-                          {b.name} ({b.pinCount} pins)
-                        </option>
-                      ))}
-                    </select>
+                    {/* Board Selector */}
+                    <div>
+                      <label className="text-[11px] text-zinc-400 block mb-1">Target Board</label>
+                      <select
+                        value={selectedBoardId}
+                        onChange={(e) => setSelectedBoardId(e.target.value)}
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
+                      >
+                        {activePinterestAccount?.boards.map((b) => (
+                          <option key={b.id} value={b.id}>
+                            {b.name} ({b.pinCount} pins)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
@@ -445,73 +488,88 @@ export const CreatePostView: React.FC = () => {
                   </span>
                 </div>
 
-                <p className="text-[11px] text-zinc-400">
-                  Select target pages. The centralized automation engine will stagger posts according to each page's specific delay gap.
-                </p>
+                {facebookPages.length === 0 ? (
+                  <div className="p-3 bg-zinc-950/80 border border-zinc-800 rounded-xl flex items-center justify-between text-xs">
+                    <span className="text-zinc-400">No Facebook pages connected yet.</span>
+                    <button
+                      type="button"
+                      onClick={() => navigateTo('facebook')}
+                      className="text-blue-400 hover:text-blue-300 font-semibold underline"
+                    >
+                      Connect Page
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-[11px] text-zinc-400">
+                      Select target pages. The centralized automation engine will stagger posts according to each page's specific delay gap.
+                    </p>
 
-                {/* Page Checkboxes */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {facebookPages.map((page) => {
-                    const isSelected = selectedFacebookPageIds.includes(page.id);
-                    return (
-                      <div
-                        key={page.id}
-                        onClick={() => {
-                          if (isSelected) {
-                            if (selectedFacebookPageIds.length > 1) {
-                              setSelectedFacebookPageIds(prev => prev.filter(id => id !== page.id));
-                            } else {
-                              showToast('warning', 'Selection Required', 'At least one Facebook page must be selected.');
-                            }
-                          } else {
-                            setSelectedFacebookPageIds(prev => [...prev, page.id]);
-                          }
-                        }}
-                        className={`p-2.5 rounded-xl border cursor-pointer transition flex items-center justify-between ${
-                          isSelected
-                            ? 'bg-blue-600/10 border-blue-500/40 text-zinc-200'
-                            : 'bg-zinc-950/60 border-zinc-800/80 text-zinc-400 hover:bg-zinc-850'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 truncate">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            readOnly
-                            className="rounded border-zinc-700 text-blue-600 focus:ring-0"
-                          />
-                          <span className="text-xs font-medium truncate">{page.name}</span>
-                        </div>
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 shrink-0">
-                          {page.postingGapMinutes}m gap
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Live Per-Page Gap Calculation Timeline Box */}
-                {selectedFacebookPageIds.length > 0 && (
-                  <div className="mt-3 bg-zinc-950/80 border border-zinc-800 rounded-xl p-3 space-y-2">
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>Calculated Slot Distribution (Respecting Posting Gaps)</span>
-                    </div>
-
-                    <div className="space-y-1.5 text-xs">
-                      {calculatedSlots.map((slot) => (
-                        <div key={slot.pageId} className="flex items-center justify-between py-1 border-b border-zinc-800/60 last:border-0">
-                          <span className="text-zinc-300 font-medium">{slot.pageName}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-zinc-400 text-[11px]">{slot.slotFormatted}</span>
-                            <span className="text-[10px] bg-emerald-950/60 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-800/50">
-                              +{slot.gapMinutes}m delay
+                    {/* Page Checkboxes */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {facebookPages.map((page) => {
+                        const isSelected = selectedFacebookPageIds.includes(page.id);
+                        return (
+                          <div
+                            key={page.id}
+                            onClick={() => {
+                              if (isSelected) {
+                                if (selectedFacebookPageIds.length > 1) {
+                                  setSelectedFacebookPageIds(prev => prev.filter(id => id !== page.id));
+                                } else {
+                                  showToast('warning', 'Selection Required', 'At least one Facebook page must be selected.');
+                                }
+                              } else {
+                                setSelectedFacebookPageIds(prev => [...prev, page.id]);
+                              }
+                            }}
+                            className={`p-2.5 rounded-xl border cursor-pointer transition flex items-center justify-between ${
+                              isSelected
+                                ? 'bg-blue-600/10 border-blue-500/40 text-zinc-200'
+                                : 'bg-zinc-950/60 border-zinc-800/80 text-zinc-400 hover:bg-zinc-850'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                readOnly
+                                className="rounded border-zinc-700 text-blue-600 focus:ring-0"
+                              />
+                              <span className="text-xs font-medium truncate">{page.name}</span>
+                            </div>
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 shrink-0">
+                              {page.postingGapMinutes}m gap
                             </span>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
-                  </div>
+
+                    {/* Live Per-Page Gap Calculation Timeline Box */}
+                    {selectedFacebookPageIds.length > 0 && (
+                      <div className="mt-3 bg-zinc-950/80 border border-zinc-800 rounded-xl p-3 space-y-2">
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>Calculated Slot Distribution (Respecting Posting Gaps)</span>
+                        </div>
+
+                        <div className="space-y-1.5 text-xs">
+                          {calculatedSlots.map((slot) => (
+                            <div key={slot.pageId} className="flex items-center justify-between py-1 border-b border-zinc-800/60 last:border-0">
+                              <span className="text-zinc-300 font-medium">{slot.pageName}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-zinc-400 text-[11px]">{slot.slotFormatted}</span>
+                                <span className="text-[10px] bg-emerald-950/60 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-800/50">
+                                  +{slot.gapMinutes}m delay
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -524,20 +582,33 @@ export const CreatePostView: React.FC = () => {
                   <span>YouTube Channel & Shorts Destination</span>
                 </div>
 
-                <div>
-                  <label className="text-[11px] text-zinc-400 block mb-1">Target YouTube Channel</label>
-                  <select
-                    value={selectedYouTubeChannelId}
-                    onChange={(e) => setSelectedYouTubeChannelId(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-red-500"
-                  >
-                    {youtubeChannels.map((chan) => (
-                      <option key={chan.id} value={chan.id}>
-                        {chan.name} ({chan.handle}) • {chan.postingGapMinutes}m delay
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {youtubeChannels.length === 0 ? (
+                  <div className="p-3 bg-zinc-950/80 border border-zinc-800 rounded-xl flex items-center justify-between text-xs">
+                    <span className="text-zinc-400">No YouTube channels connected yet.</span>
+                    <button
+                      type="button"
+                      onClick={() => navigateTo('youtube')}
+                      className="text-red-400 hover:text-red-300 font-semibold underline"
+                    >
+                      Connect Channel
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="text-[11px] text-zinc-400 block mb-1">Target YouTube Channel</label>
+                    <select
+                      value={selectedYouTubeChannelId}
+                      onChange={(e) => setSelectedYouTubeChannelId(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-red-500"
+                    >
+                      {youtubeChannels.map((chan) => (
+                        <option key={chan.id} value={chan.id}>
+                          {chan.name} ({chan.handle}) • {chan.postingGapMinutes}m delay
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             )}
           </div>

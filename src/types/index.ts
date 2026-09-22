@@ -219,7 +219,6 @@ export interface ScheduleConfig {
 
 export interface GlobalSettings {
   demoMode: boolean;
-  zeroBudgetMode?: boolean;
   globalWebsiteUrl: string;
   defaultTimezone: string;
   autoAnalyzeOnUpload: boolean;
@@ -248,4 +247,28 @@ export interface GoogleDriveFolder {
   lastSync: string;
   isConnected: boolean;
   syncIntervalMinutes?: number;
+}
+
+export interface AppVersionInfo {
+  currentVersion: string;
+  latestVersion: string;
+  hasUpdate: boolean;
+  releaseDate: string;
+  releaseNotes: string[];
+  githubRepoUrl: string;
+  lastCheckedTime?: string;
+  isChecking?: boolean;
+}
+
+export interface CsvPinRow {
+  id: string;
+  title: string;
+  description: string;
+  destinationUrl: string;
+  imageUrl: string;
+  scheduledTime?: string;
+  boardName?: string;
+  tags?: string;
+  isValid: boolean;
+  errorMessage?: string;
 }
