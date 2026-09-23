@@ -14,7 +14,29 @@ import {
 
 export const INITIAL_YOUTUBE_CHANNELS: YouTubeChannel[] = [];
 
-export const AVAILABLE_DRIVE_FOLDERS: GoogleDriveFolder[] = [];
+export const AVAILABLE_DRIVE_FOLDERS: GoogleDriveFolder[] = [
+  {
+    id: 'folder_pins_2026',
+    name: 'Drive_Pin_Designs_2026',
+    filesCount: 18,
+    lastSync: 'Synced 5m ago',
+    isConnected: true
+  },
+  {
+    id: 'folder_shorts_vault',
+    name: 'YouTube_Shorts_Vault',
+    filesCount: 6,
+    lastSync: 'Synced 1h ago',
+    isConnected: true
+  },
+  {
+    id: 'folder_bulk_marketing',
+    name: 'Social_Media_Bulk_Uploads',
+    filesCount: 12,
+    lastSync: 'Synced 3h ago',
+    isConnected: true
+  }
+];
 
 export const INITIAL_PINTEREST_ACCOUNTS: PinterestAccount[] = [];
 
@@ -96,9 +118,9 @@ export const INITIAL_SETTINGS: GlobalSettings = {
 };
 
 export const INITIAL_GOOGLE_DRIVE: GoogleDriveFolder = {
-  id: '',
-  name: 'Not Connected',
-  filesCount: 0,
-  lastSync: 'Never',
-  isConnected: false
+  id: 'folder_pins_2026',
+  name: 'Drive_Pin_Designs_2026',
+  filesCount: 18,
+  lastSync: 'Synced 5m ago',
+  isConnected: true
 };

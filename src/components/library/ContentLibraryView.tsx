@@ -17,7 +17,10 @@ import {
   CheckCircle2,
   Clock,
   Play,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Check,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { MediaModal } from '../common/MediaModal';
 
@@ -27,6 +30,11 @@ export const ContentLibraryView: React.FC = () => {
     uploadMedia,
     deleteMedia,
     analyzeMediaWithAi,
+    bulkAnalyzeMediaWithAi,
+    isBulkAnalyzing,
+    bulkAnalysisProgress,
+    isBulkDriveModalOpen,
+    setIsBulkDriveModalOpen,
     navigateTo,
     googleDrive,
     syncGoogleDrive,
@@ -40,6 +48,7 @@ export const ContentLibraryView: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'image' | 'video' | 'ready' | 'scheduled' | 'published' | 'failed'>('all');
   const [selectedMediaForModal, setSelectedMediaForModal] = useState<MediaItem | null>(null);
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
   const [customFolderName, setCustomFolderName] = useState('');
   const [showFolderModal, setShowFolderModal] = useState(false);
@@ -89,6 +98,16 @@ export const ContentLibraryView: React.FC = () => {
         {/* Google Drive Status Bar & Quick Schedule Button */}
         <div className="flex flex-wrap items-center gap-2.5">
           <button
+            onClick={() => setIsBulkDriveModalOpen(true)}
+            className="px-3.5 py-2 bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 hover:from-blue-500 hover:to-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/25 flex items-center gap-1.5 transition cursor-pointer"
+            title="Bulk import from Google Drive with automatic AI titles, descriptions & hashtags"
+          >
+            <Cloud className="w-3.5 h-3.5 text-sky-200" />
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>Google Drive Bulk AI</span>
+          </button>
+
+          <button
             onClick={() => setIsCsvModalOpen(true)}
             className="px-3.5 py-2 bg-[#09152b] hover:bg-[#112347] border border-[#1a335a] hover:border-emerald-500/50 text-emerald-300 rounded-xl text-xs font-semibold shadow-sm flex items-center gap-1.5 transition cursor-pointer"
             title="Upload CSV spreadsheet to schedule batch pins"
@@ -128,6 +147,14 @@ export const ContentLibraryView: React.FC = () => {
             {googleDrive.isConnected ? (
               <>
                 <button
+                  onClick={() => setIsBulkDriveModalOpen(true)}
+                  className="px-2.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center gap-1 shadow-sm transition"
+                  title="Bulk AI analyze folder files"
+                >
+                  <Sparkles className="w-3 h-3 text-amber-300" />
+                  <span>Bulk AI Ingest</span>
+                </button>
+                <button
                   onClick={() => setShowFolderModal(true)}
                   className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-750 text-zinc-300 text-xs font-medium rounded-xl border border-zinc-700/60 transition"
                 >
@@ -159,6 +186,34 @@ export const ContentLibraryView: React.FC = () => {
         </div>
       </div>
     </div>
+
+      {/* Live Bulk AI Progress Notification */}
+      {isBulkAnalyzing && bulkAnalysisProgress && (
+        <div className="p-4 bg-gradient-to-r from-blue-950/70 via-zinc-900 to-sky-950/60 border border-blue-500/40 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl shadow-blue-500/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center animate-spin">
+              <RefreshCw className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-white flex items-center gap-2">
+                <span>AI Vision Batch Ingestion Active</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                  {bulkAnalysisProgress.current} / {bulkAnalysisProgress.total} Files
+                </span>
+              </p>
+              <p className="text-[11px] text-zinc-400 mt-0.5">
+                Analyzing visual objects & generating titles for: <span className="font-mono text-zinc-200 font-semibold">{bulkAnalysisProgress.currentFileName}</span>
+              </p>
+            </div>
+          </div>
+          <div className="w-full sm:w-60 bg-zinc-800 rounded-full h-2.5 overflow-hidden border border-zinc-700">
+            <div
+              className="bg-gradient-to-r from-blue-500 via-sky-400 to-emerald-400 h-full rounded-full transition-all duration-300"
+              style={{ width: `${(bulkAnalysisProgress.current / bulkAnalysisProgress.total) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Drag & Drop Upload Zone */}
       <div
@@ -232,8 +287,52 @@ export const ContentLibraryView: React.FC = () => {
               {pill.label}
             </button>
           ))}
+
+          {mediaItems.filter(m => m.aiAnalysisStatus === 'Pending').length > 0 && (
+            <button
+              onClick={() => {
+                const pendingIds = mediaItems.filter(m => m.aiAnalysisStatus === 'Pending').map(m => m.id);
+                bulkAnalyzeMediaWithAi(pendingIds);
+              }}
+              disabled={isBulkAnalyzing}
+              className="px-3 py-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 text-amber-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition ml-auto"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Auto-Analyze Pending ({mediaItems.filter(m => m.aiAnalysisStatus === 'Pending').length}) with AI</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Bulk Selection Bar */}
+      {selectedItemIds.size > 0 && (
+        <div className="p-3.5 bg-zinc-900 border border-blue-500/50 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xl">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold text-white">
+              {selectedItemIds.size} Media Assets Selected
+            </span>
+            <button
+              onClick={() => setSelectedItemIds(new Set())}
+              className="text-xs text-zinc-400 hover:text-white underline cursor-pointer"
+            >
+              Deselect All
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                bulkAnalyzeMediaWithAi(Array.from(selectedItemIds));
+              }}
+              disabled={isBulkAnalyzing}
+              className="px-4 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>Bulk Analyze Selected ({selectedItemIds.size}) with AI</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Media Grid Cards */}
       {filteredItems.length === 0 ? (
@@ -251,11 +350,14 @@ export const ContentLibraryView: React.FC = () => {
           {filteredItems.map((item) => {
             const destUrl = getEffectiveDestinationUrl(item.destinationUrl);
             const isVideo = item.mediaType === 'video';
+            const isSelected = selectedItemIds.has(item.id);
 
             return (
               <div
                 key={item.id}
-                className="group bg-zinc-900/70 border border-zinc-800/80 hover:border-zinc-700 rounded-2xl overflow-hidden flex flex-col justify-between transition shadow-sm"
+                className={`group bg-zinc-900/70 border rounded-2xl overflow-hidden flex flex-col justify-between transition shadow-sm ${
+                  isSelected ? 'border-blue-500 ring-1 ring-blue-500/50 bg-blue-950/10' : 'border-zinc-800/80 hover:border-zinc-700'
+                }`}
               >
                 {/* Thumbnail Header */}
                 <div className="relative aspect-video bg-black/60 overflow-hidden">
@@ -265,8 +367,27 @@ export const ContentLibraryView: React.FC = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
 
+                  {/* Multi-Select Checkbox */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedItemIds(prev => {
+                        const next = new Set(prev);
+                        if (next.has(item.id)) next.delete(item.id);
+                        else next.add(item.id);
+                        return next;
+                      });
+                    }}
+                    className={`absolute top-2.5 left-2.5 z-10 w-6 h-6 rounded-lg flex items-center justify-center transition backdrop-blur-md cursor-pointer ${
+                      isSelected ? 'bg-blue-600 text-white shadow-md' : 'bg-black/60 text-transparent border border-white/20 hover:border-white/50'
+                    }`}
+                    title={isSelected ? 'Deselect item' : 'Select item for bulk AI'}
+                  >
+                    <Check className="w-3.5 h-3.5 text-white" />
+                  </button>
+
                   {/* Format Badge (Image / Video) */}
-                  <div className="absolute top-2.5 left-2.5 flex items-center gap-1">
+                  <div className="absolute top-2.5 left-10 flex items-center gap-1">
                     <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider backdrop-blur-md flex items-center gap-1 ${
                       isVideo ? 'bg-purple-900/80 text-purple-200 border border-purple-500/40' : 'bg-blue-900/80 text-blue-200 border border-blue-500/40'
                     }`}>

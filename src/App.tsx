@@ -6,6 +6,7 @@ import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { ToastContainer } from './components/common/ToastContainer';
 import { UpdateNotificationModal } from './components/common/UpdateNotificationModal';
 import { CsvBulkUploadModal } from './components/library/CsvBulkUploadModal';
+import { BulkDriveImportModal } from './components/drive/BulkDriveImportModal';
 import { QuickSearchModal } from './components/common/QuickSearchModal';
 
 // Feature Views
@@ -66,6 +67,8 @@ const AppLayout: React.FC = () => {
     setIsUpdateModalOpen,
     isCsvModalOpen,
     setIsCsvModalOpen,
+    isBulkDriveModalOpen,
+    setIsBulkDriveModalOpen,
     isQuickSearchOpen,
     setIsQuickSearchOpen,
     theme
@@ -115,6 +118,10 @@ const AppLayout: React.FC = () => {
       <CsvBulkUploadModal
         isOpen={isCsvModalOpen}
         onClose={() => setIsCsvModalOpen(false)}
+      />
+      <BulkDriveImportModal
+        isOpen={isBulkDriveModalOpen}
+        onClose={() => setIsBulkDriveModalOpen(false)}
       />
 
       {/* Global Footer (Requested: Created by ❤️ Irfan Gulzar linking to irfangulzar.com) */}

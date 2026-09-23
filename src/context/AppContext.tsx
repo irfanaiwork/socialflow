@@ -31,7 +31,7 @@ import {
   INITIAL_GOOGLE_DRIVE
 } from '../services/mockData';
 import { AiService } from '../services/aiService';
-import { GoogleDriveService } from '../services/googleDriveService';
+import { GoogleDriveService, DriveFileInfo } from '../services/googleDriveService';
 import { YouTubeService } from '../services/youtubeService';
 import { SchedulerService, CalculatedSlot } from '../services/schedulerService';
 
@@ -95,6 +95,12 @@ interface AppContextType {
   uploadMedia: (files: File[]) => Promise<void>;
   deleteMedia: (id: string) => void;
   analyzeMediaWithAi: (mediaId: string, profileId?: string) => Promise<void>;
+  bulkAnalyzeMediaWithAi: (mediaIds: string[], profileId?: string) => Promise<void>;
+  importDriveFilesToLibrary: (files: DriveFileInfo[], autoAnalyze?: boolean, profileId?: string) => Promise<MediaItem[]>;
+  isBulkAnalyzing: boolean;
+  bulkAnalysisProgress: { current: number; total: number; currentFileName: string } | null;
+  isBulkDriveModalOpen: boolean;
+  setIsBulkDriveModalOpen: (open: boolean) => void;
 
   // Facebook Pages
   updateFacebookPageGap: (pageId: string, gapMinutes: number) => void;
@@ -294,6 +300,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
+  const [isBulkDriveModalOpen, setIsBulkDriveModalOpen] = useState(false);
+  const [isBulkAnalyzing, setIsBulkAnalyzing] = useState(false);
+  const [bulkAnalysisProgress, setBulkAnalysisProgress] = useState<{
+    current: number;
+    total: number;
+    currentFileName: string;
+  } | null>(null);
 
   // Set document root to dark mode
   useEffect(() => {
@@ -556,6 +569,72 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [mediaItems, promptProfiles, activePromptProfileId, showToast, addLog]);
 
+  const bulkAnalyzeMediaWithAi = useCallback(async (mediaIds: string[], profileId?: string) => {
+    if (!mediaIds.length) return;
+    setIsBulkAnalyzing(true);
+    const targetItems = mediaItems.filter(m => mediaIds.includes(m.id));
+    const total = targetItems.length;
+    let completed = 0;
+
+    showToast('info', 'Bulk AI Analysis Started', `Analyzing ${total} media assets with visual recognition...`);
+
+    const selectedProfile = promptProfiles.find(p => p.id === (profileId || activePromptProfileId));
+
+    for (let i = 0; i < total; i++) {
+      const item = targetItems[i];
+      setBulkAnalysisProgress({
+        current: i + 1,
+        total,
+        currentFileName: item.fileName
+      });
+      setMediaItems(prev => prev.map(m => m.id === item.id ? { ...m, aiAnalysisStatus: 'Processing' } : m));
+
+      try {
+        const analysis = await AiService.analyzeMedia(item, selectedProfile);
+        setMediaItems(prev => prev.map(m => m.id === item.id ? {
+          ...m,
+          aiAnalysisStatus: 'Analyzed',
+          aiAnalysis: analysis
+        } : m));
+        completed++;
+      } catch (err) {
+        setMediaItems(prev => prev.map(m => m.id === item.id ? { ...m, aiAnalysisStatus: 'Failed' } : m));
+      }
+    }
+
+    setIsBulkAnalyzing(false);
+    setBulkAnalysisProgress(null);
+    showToast('success', 'Bulk AI Analysis Finished', `Successfully analyzed ${completed} of ${total} assets with titles, descriptions & hashtags!`);
+    addLog({
+      platform: 'ai',
+      action: 'Bulk AI Visual Analysis Completed',
+      status: 'success',
+      contentTitle: `Batch of ${completed} media files`,
+      targetName: 'Bulk AI Generator'
+    });
+  }, [mediaItems, promptProfiles, activePromptProfileId, showToast, addLog]);
+
+  const importDriveFilesToLibrary = useCallback(async (files: DriveFileInfo[], autoAnalyze: boolean = false, profileId?: string): Promise<MediaItem[]> => {
+    const newMediaItems: MediaItem[] = files.map(f => GoogleDriveService.convertToFileMediaItem(f));
+    
+    setMediaItems(prev => {
+      const existingIds = new Set(prev.map(m => m.id));
+      const toAdd = newMediaItems.filter(m => !existingIds.has(m.id));
+      return [...toAdd, ...prev];
+    });
+
+    showToast('success', 'Google Drive Assets Imported', `Imported ${newMediaItems.length} files from Google Drive.`);
+
+    if (autoAnalyze && newMediaItems.length > 0) {
+      const ids = newMediaItems.map(m => m.id);
+      setTimeout(() => {
+        bulkAnalyzeMediaWithAi(ids, profileId);
+      }, 200);
+    }
+
+    return newMediaItems;
+  }, [showToast, bulkAnalyzeMediaWithAi]);
+
   // Facebook Page Gap Management
   const updateFacebookPageGap = useCallback((pageId: string, gapMinutes: number) => {
     setFacebookPages(prev => prev.map(page => {
@@ -783,19 +862,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Google Drive
   const syncGoogleDrive = useCallback(async () => {
     showToast('info', 'Syncing Google Drive', `Scanning folder "${googleDrive.name}"...`);
-    const res = await GoogleDriveService.syncFolder();
+    const res = await GoogleDriveService.syncFolder(googleDrive.name);
+    
+    // Automatically convert and import newly found drive files into library
+    const newMedia = res.newItems.map(f => GoogleDriveService.convertToFileMediaItem(f));
+    setMediaItems(prev => {
+      const existingIds = new Set(prev.map(m => m.id));
+      const toAdd = newMedia.filter(m => !existingIds.has(m.id));
+      return [...toAdd, ...prev];
+    });
+
     setGoogleDrive(prev => ({
       ...prev,
-      lastSync: 'Just now (Demo Sync)',
-      filesCount: prev.filesCount + 2
+      lastSync: 'Just now',
+      filesCount: res.filesFound
     }));
 
-    showToast('success', 'Google Drive Synced', `Found ${res.filesFound} files. 2 new assets ready for AI analysis.`);
+    showToast('success', 'Google Drive Synced', `Found ${res.filesFound} files in "${googleDrive.name}". Synced and ready for bulk AI analysis.`);
     addLog({
       platform: 'google-drive',
       action: 'Google Drive Sync Completed',
       status: 'success',
-      contentTitle: `${googleDrive.name} folder scan`,
+      contentTitle: `${googleDrive.name} (${res.filesFound} files)`,
       targetName: 'Google Drive Connector'
     });
   }, [googleDrive.name, showToast, addLog]);
@@ -1158,6 +1246,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         uploadMedia,
         deleteMedia,
         analyzeMediaWithAi,
+        bulkAnalyzeMediaWithAi,
+        importDriveFilesToLibrary,
+        isBulkAnalyzing,
+        bulkAnalysisProgress,
+        isBulkDriveModalOpen,
+        setIsBulkDriveModalOpen,
         updateFacebookPageGap,
         toggleFacebookPageConnection,
         connectFacebookPage,

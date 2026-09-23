@@ -54,6 +54,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ isOpen, onCl
     settings,
     updateSettings,
     setIsCsvModalOpen,
+    setIsBulkDriveModalOpen,
     setIsUpdateModalOpen,
     appVersion
   } = useApp();
@@ -89,6 +90,20 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ isOpen, onCl
 
   // Built-in actions
   const quickActions: SearchResultItem[] = useMemo(() => [
+    {
+      id: 'act_bulk_drive_ai',
+      category: 'action',
+      title: 'Google Drive Bulk Ingestion & AI Auto-Generator',
+      subtitle: 'Analyze bulk Drive images with AI vision to generate titles, descriptions & hashtags',
+      badge: 'Vision AI',
+      badgeColor: 'bg-blue-500/20 text-blue-400 border border-blue-500/40',
+      icon: Cloud,
+      iconColor: 'text-sky-400',
+      action: () => {
+        onClose();
+        setIsBulkDriveModalOpen(true);
+      }
+    },
     {
       id: 'act_schedule_24',
       category: 'action',

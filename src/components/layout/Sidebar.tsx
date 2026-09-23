@@ -16,7 +16,8 @@ import {
   Youtube,
   Radio,
   X,
-  Search
+  Search,
+  Cloud
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -31,6 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     queueItems,
     mediaItems,
     setIsQuickSearchOpen,
+    setIsBulkDriveModalOpen,
     settings,
     updateSettings
   } = useApp();
@@ -136,6 +138,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               );
             })}
           </nav>
+
+          {/* Google Drive Bulk AI Quick Action Button */}
+          <button
+            onClick={() => {
+              if (onClose) onClose();
+              setIsBulkDriveModalOpen(true);
+            }}
+            className="w-full mt-3 px-3 py-2.5 bg-gradient-to-r from-blue-900/40 via-sky-900/30 to-indigo-900/40 hover:from-blue-800/50 hover:to-indigo-800/50 border border-blue-500/30 text-sky-200 rounded-xl text-xs font-semibold flex items-center justify-between transition group shadow-sm cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <Cloud className="w-4 h-4 text-sky-400 group-hover:scale-110 transition-transform" />
+              <span>Drive Bulk AI</span>
+            </div>
+            <span className="text-[10px] bg-blue-500/30 text-blue-200 px-2 py-0.5 rounded-full font-bold">
+              Vision AI
+            </span>
+          </button>
         </div>
 
         {/* Footer info: Centralized Automation Engine Status & Creator Tag */}

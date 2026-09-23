@@ -36,27 +36,123 @@ export class AiService {
       };
     }
 
-    if (name.includes('magic') || name.includes('trick') || name.includes('illusion') || name.includes('card')) {
+    if (name.includes('kitchen') || name.includes('quartz') || name.includes('countertop')) {
       return {
-        mainTopic: isVideo ? 'High-Energy Visual Card Teleportation Illusion' : 'Close-Up Magic Sleight of Hand Exhibition',
-        objects: ['Bicycle Rider Back playing cards', 'Close-up performance mat', 'Sharpie marker', 'Spectator ring'],
-        people: 'Street magician and astonished spectators in public plaza',
-        environment: 'Busy downtown pedestrian promenade with natural afternoon lighting',
-        visualStyle: 'Cinematic shallow depth of field with fast-paced visual reveal framing',
-        textVisible: 'IMPOSSIBLE STREET MAGIC ILLUSION 😱♠️',
-        mainMessage: 'An unexpected transposition where the signed card appears inside the spectator closed hands.',
-        targetAudience: profile?.targetAudience || 'Magic enthusiasts, teens, viral entertainment seekers, illusion fans',
-        contentCategory: 'Magic & Street Entertainment',
-        keywords: ['street magic', 'card trick reveal', 'mind blowing illusion', 'sleight of hand', 'viral magic short'],
-        searchIntent: 'Best visual street magic card tricks for beginners',
-        pinterestTitle: 'Incredible Street Magic Card Teleportation Revealed',
-        pinterestDescription: 'Watch this mind-bending visual card trick performed right before spectators eyes in broad daylight. Learn the core principles of psychology and misdirection!',
-        facebookCaption: 'Watch their expressions at the reveal... complete disbelief! Could you spot the secret move? Drop your theories below! 🎩✨♠️',
-        youtubeTitle: 'IMPOSSIBLE Street Magic Card Teleportation 😱♠️ #Shorts',
-        youtubeDescription: 'Watch their faces when the signed card teleports right into their closed hand! Did you catch the secret move?\n\n🎩 Subscribe for daily street magic: https://magicshortsvault.com/subscribe\n\n#Shorts #MagicTricks #StreetMagic #Illusion',
-        youtubeTags: ['shorts', 'magic', 'card trick', 'street magic', 'illusion', 'reaction'],
-        suggestedHashtags: ['#StreetMagic', '#CardFlourish', '#MindBlow', '#MagicTricks', '#Illusionist'],
-        suggestedCta: profile?.cta || 'Comment what trick you want to see next and share with a friend!'
+        mainTopic: 'Modern Kitchen Remodel & Quartz Countertop Trends',
+        objects: ['White veined quartz waterfall island', 'Pendant brass light fixtures', 'Matte black faucets', 'Oak bar stools', 'Tile backsplash'],
+        people: 'Not detected',
+        environment: 'Spacious contemporary kitchen with natural daylight streaming through black-framed windows',
+        visualStyle: 'Architectural interior photography with high dynamic range and warm wood accents',
+        textVisible: '2026 KITCHEN DESIGN TRENDS • QUARTZ COUNTERTOPS',
+        mainMessage: 'Upgrade your kitchen aesthetics with durable, stain-resistant quartz countertops and minimalist styling.',
+        targetAudience: profile?.targetAudience || 'Homeowners, interior design enthusiasts, remodelers, DIY renovators',
+        contentCategory: 'Home Decor & Renovation',
+        keywords: ['kitchen remodel ideas', 'quartz countertops', 'modern kitchen design', 'kitchen island inspiration', 'kitchen renovation on a budget'],
+        searchIntent: 'Best modern kitchen countertop materials and island ideas',
+        pinterestTitle: 'Modern Kitchen Countertops: Quartz Waterfall Island Inspiration',
+        pinterestDescription: 'Dreaming of a kitchen makeover? Explore the most popular quartz countertop styles, waterfall edge ideas, and timeless cabinet pairings. Pin this for your upcoming remodel inspiration!',
+        facebookCaption: 'Waterfall quartz island or classic butcher block? Here are our favorite modern kitchen details from this week! Which one would you choose for your dream home? 🏡✨',
+        youtubeTitle: 'Top 3 Kitchen Remodel Mistakes to Avoid #Shorts',
+        youtubeDescription: 'Planning a kitchen renovation? Watch before you buy countertops!\n\n📌 Full guide on our blog: https://example.com/kitchen-trends\n\n#Shorts #KitchenDesign #HomeRenovation',
+        youtubeTags: ['shorts', 'kitchen remodel', 'quartz countertops', 'interior design', 'home decor'],
+        suggestedHashtags: ['#KitchenDesign', '#QuartzCountertops', '#HomeRemodel', '#ModernKitchen', '#InteriorInspo'],
+        suggestedCta: profile?.cta || 'Save this pin and click through to explore our full kitchen remodel guide and cost breakdown!'
+      };
+    }
+
+    if (name.includes('desk') || name.includes('office') || name.includes('workspace')) {
+      return {
+        mainTopic: 'Minimalist Ergonomic Home Office & Productivity Desk Setup',
+        objects: ['Curved ultra-wide monitor', 'Walnut desk shelf riser', 'Mechanical keyboard', 'Ergonomic mesh chair', 'Warm desk lamp'],
+        people: 'Not detected',
+        environment: 'Clean minimalist home office workspace with soft ambient accent lighting',
+        visualStyle: 'Warm moody tech aesthetic with balanced cable management and natural wood textures',
+        textVisible: 'DREAM HOME OFFICE DESK SETUP',
+        mainMessage: 'Craft a clutter-free, ergonomic workspace designed to maximize daily focus and deep work flow.',
+        targetAudience: profile?.targetAudience || 'Remote workers, developers, digital creators, students',
+        contentCategory: 'Productivity & Tech Setup',
+        keywords: ['desk setup ideas', 'minimalist home office', 'ergonomic workspace', 'desk organization', 'remote work setup'],
+        searchIntent: 'How to organize a clean minimalist desk setup for productivity',
+        pinterestTitle: 'Minimalist Home Office Desk Setup for Maximum Productivity',
+        pinterestDescription: 'Level up your daily workflow with these clean, ergonomic desk setup ideas. From cable management to monitor risers, discover everything you need for a focused workspace.',
+        facebookCaption: 'A clean desk = a clear mind! Here is our complete workspace blueprint for remote workers. What is your #1 desk essential you cannot live without? 💻☕',
+        youtubeTitle: 'Clean Desk Setup Tour & Cable Management Tips #Shorts',
+        youtubeDescription: 'The ultimate minimalist desk setup guide for remote work productivity.\n\n🔗 Setup gear linked in bio: https://example.com/desk-gear\n\n#Shorts #DeskSetup #Productivity',
+        youtubeTags: ['shorts', 'desk setup', 'home office', 'productivity', 'minimalist'],
+        suggestedHashtags: ['#DeskSetup', '#HomeOfficeInspo', '#WorkFromHome', '#ProductivityHacks', '#MinimalistDesk'],
+        suggestedCta: profile?.cta || 'Pin this setup to your board and tap the link to shop every desk accessory!'
+      };
+    }
+
+    if (name.includes('salad') || name.includes('quinoa') || name.includes('mediterranean')) {
+      return {
+        mainTopic: 'Fresh Mediterranean Quinoa Salad & 15-Minute Meal Prep',
+        objects: ['White ceramic serving bowl', 'Crumbled greek feta', 'Kalamata olives', 'Cherry tomatoes', 'Extra virgin olive oil cruet'],
+        people: 'Not detected',
+        environment: 'Sunlit marble kitchen island with rustic linen napkins',
+        visualStyle: 'Vibrant, high-contrast culinary flat lay photography highlighting fresh textures',
+        textVisible: '15-MINUTE MEDITERRANEAN QUINOA SALAD',
+        mainMessage: 'Quick, nutrient-dense lunch ready in under 15 minutes that stays crisp and delicious for weekday meal prep.',
+        targetAudience: profile?.targetAudience || 'Healthy eaters, busy professionals, meal preppers, Mediterranean diet fans',
+        contentCategory: 'Recipes & Healthy Eating',
+        keywords: ['mediterranean salad recipe', 'quinoa salad easy', 'healthy lunch ideas', '15 minute meal prep', 'greek salad with quinoa'],
+        searchIntent: 'Easy Mediterranean quinoa salad recipe for meal prep lunch',
+        pinterestTitle: '15-Minute Mediterranean Quinoa Salad (Easy Meal Prep)',
+        pinterestDescription: 'Packed with crisp cucumbers, ripe tomatoes, kalamata olives, and tangy feta! This high-protein Mediterranean quinoa salad is your new go-to easy weekday lunch.',
+        facebookCaption: 'Crisp, refreshing, and ready in 15 minutes! This Mediterranean quinoa salad holds up in the fridge all week long without getting soggy. Recipe linked below! 🥗🫒',
+        youtubeTitle: 'The 15-Minute High-Protein Salad You Will Make Every Week #Shorts',
+        youtubeDescription: 'Super easy Mediterranean quinoa salad recipe!\n\n🥗 Full printable recipe: https://example.com/quinoa-salad\n\n#Shorts #HealthyRecipes #MealPrep',
+        youtubeTags: ['shorts', 'healthy recipes', 'salad recipe', 'meal prep', 'mediterranean diet'],
+        suggestedHashtags: ['#HealthyLunch', '#MealPrepIdeas', '#MediterraneanDiet', '#SaladRecipe', '#EasyDinners'],
+        suggestedCta: profile?.cta || 'Save this recipe to your Healthy Food board and tap through for the printable ingredients card!'
+      };
+    }
+
+    if (name.includes('decor') || name.includes('living') || name.includes('scandinavian')) {
+      return {
+        mainTopic: 'Cozy Scandinavian Living Room & Warm Neutral Styling Ideas',
+        objects: ['Boucle sofa with chunky knit throw', 'Round travertine coffee table', 'Ceramic vase with dried pampas', 'Abstract line art framed print'],
+        people: 'Not detected',
+        environment: 'Sun-drenched modern living room with light oak herringbone flooring',
+        visualStyle: 'Soft neutral color grading with tactile textures and serene negative space',
+        textVisible: 'COZY SCANDINAVIAN LIVING ROOM IDEAS',
+        mainMessage: 'Layer warm neutrals, organic wood textures, and ambient lighting to create a soothing sanctuary at home.',
+        targetAudience: profile?.targetAudience || 'Home styling lovers, apartment dwellers, minimalist decor fans',
+        contentCategory: 'Interior Design & Home Decor',
+        keywords: ['scandinavian living room', 'warm neutral living room', 'cozy home aesthetic', 'living room styling', 'neutral decor ideas'],
+        searchIntent: 'How to style a cozy Scandinavian neutral living room',
+        pinterestTitle: 'Cozy Scandinavian Living Room Decor & Styling Tips',
+        pinterestDescription: 'Create a calming, warm neutral living space with these simple styling principles. Discover how to layer textures, choose natural wood accents, and master Scandinavian minimalism.',
+        facebookCaption: 'Soft textures, warm oak, and natural light... the perfect weekend sanctuary. Which element is your favorite? 🛋️🕯️',
+        youtubeTitle: 'Transform Your Living Room with 3 Neutral Styling Rules #Shorts',
+        youtubeDescription: 'How to make any room look instantly warmer and more designer-curated!\n\n🛋️ Details on our site: https://example.com/scandi-living\n\n#Shorts #InteriorDesign #LivingRoomDecor',
+        youtubeTags: ['shorts', 'living room decor', 'scandinavian design', 'interior design', 'neutral aesthetic'],
+        suggestedHashtags: ['#ScandiHome', '#LivingRoomDecor', '#NeutralAesthetic', '#CozyLiving', '#InteriorInspo'],
+        suggestedCta: profile?.cta || 'Save this pin to your Dream Home board and tap to discover budget-friendly source links!'
+      };
+    }
+
+    if (name.includes('pins') || name.includes('automation') || name.includes('strategy')) {
+      return {
+        mainTopic: '24 Daily Pins Automation Strategy for Rapid Pinterest Traffic Growth',
+        objects: ['Growth metrics dashboard chart', 'Social media calendar timeline', 'Pinterest pin mockups', 'Laptop computer'],
+        people: 'Digital marketing strategist reviewing analytics',
+        environment: 'Modern creative agency workspace',
+        visualStyle: 'High-contrast editorial infographic style with sharp bold typography',
+        textVisible: '24 DAILY PINS AUTOMATION BLUEPRINT',
+        mainMessage: 'Scale your Pinterest impressions to 100K+ monthly views on autopilot with consistent hourly scheduling.',
+        targetAudience: profile?.targetAudience || 'Bloggers, affiliate marketers, e-commerce shop owners, content creators',
+        contentCategory: 'Digital Marketing & Pinterest SEO',
+        keywords: ['pinterest traffic strategy', 'daily pins schedule', 'pinterest automation crm', 'scale blog traffic', 'pinterest growth guide'],
+        searchIntent: 'How many pins to post per day on Pinterest for viral traffic',
+        pinterestTitle: 'The 24 Daily Pins Strategy: How to Explode Your Pinterest Reach',
+        pinterestDescription: 'Stop manual pinning! Learn how scheduling 24 optimized pins a day with consistent hourly spacing drives tens of thousands of outbound clicks to your website or shop.',
+        facebookCaption: 'Want to know how top bloggers generate 50,000+ monthly visits from Pinterest without spending all day on social media? Here is the exact daily automation blueprint! 🚀📈',
+        youtubeTitle: 'How to Schedule 24 Pins Every Day in 5 Minutes #Shorts',
+        youtubeDescription: 'The step-by-step Pinterest growth hack that saves 20 hours a week.\n\n🚀 Read the full growth guide: https://example.com/pinterest-growth\n\n#Shorts #PinterestMarketing #BloggingTips',
+        youtubeTags: ['shorts', 'pinterest marketing', 'blogging tips', 'social media automation', 'traffic growth'],
+        suggestedHashtags: ['#PinterestStrategy', '#BloggingTips', '#SocialMediaMarketing', '#TrafficGrowth', '#AutomationTools'],
+        suggestedCta: profile?.cta || 'Save this strategy guide and click through to download our free daily scheduling calendar!'
       };
     }
 

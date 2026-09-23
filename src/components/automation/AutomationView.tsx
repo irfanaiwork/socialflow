@@ -50,7 +50,8 @@ export const AutomationView: React.FC = () => {
     connectGoogleDriveFolder,
     promptProfiles,
     settings,
-    showToast
+    showToast,
+    setIsBulkDriveModalOpen
   } = useApp();
 
   const [platformFilter, setPlatformFilter] = useState<'all' | 'pinterest' | 'facebook' | 'youtube'>('all');
@@ -223,6 +224,16 @@ export const AutomationView: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setIsBulkDriveModalOpen(true)}
+            className="px-3.5 py-2 bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 hover:from-blue-500 hover:to-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/25 flex items-center gap-1.5 transition cursor-pointer"
+            title="Import and analyze files from Google Drive in bulk with Vision AI"
+          >
+            <HardDrive className="w-3.5 h-3.5 text-sky-200" />
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>Drive Bulk AI</span>
+          </button>
+
           <button
             onClick={handleSyncDrive}
             disabled={isSyncingDrive}
